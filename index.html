@@ -310,6 +310,74 @@
   .rewards-icon { font-size: 2.4rem; margin-bottom: 12px; }
   .rewards-title { font-weight: 800; font-size: 1.2rem; margin-bottom: 8px; }
   .rewards-sub { color: var(--ink-dim); font-size: 0.88rem; line-height: 1.5; max-width: 320px; margin: 0 auto; }
+
+  /* ---- Blackjack ---- */
+  .bj-table {
+    background: radial-gradient(ellipse at 50% 0%, rgba(45,212,232,0.06), transparent 60%), var(--bg-raised);
+    border: 1px solid var(--line); border-radius: 16px; padding: 18px 14px;
+    margin-bottom: 12px; min-height: 220px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .bj-seat { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .bj-seat-label { color: var(--ink-dim); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px; }
+  .bj-score {
+    background: var(--bg-tile); border: 1px solid var(--line); border-radius: 6px;
+    padding: 1px 7px; color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    min-width: 18px; text-align: center;
+  }
+  .bj-cards { display: flex; gap: 0; min-height: 74px; align-items: center; flex-wrap: wrap; }
+  .bj-divider { height: 1px; background: var(--line); margin: 2px 0; }
+
+  .bj-card {
+    width: 50px; height: 72px; perspective: 600px; flex-shrink: 0; margin-right: -14px;
+    opacity: 0; transform: translateY(-16px) scale(0.85);
+    animation: bjDealIn 0.32s cubic-bezier(.2,.8,.3,1) forwards;
+  }
+  .bj-card-inner {
+    position: relative; width: 100%; height: 100%; transform-style: preserve-3d;
+    transition: transform 0.45s cubic-bezier(.3,.1,.3,1);
+  }
+  .bj-card.flipped .bj-card-inner { transform: rotateY(180deg); }
+  .bj-card-face {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    border-radius: 7px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-weight: 800; box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  }
+  .bj-card-back {
+    background: repeating-linear-gradient(135deg, #1b2e8f, #1b2e8f 6px, #223aa8 6px, #223aa8 12px);
+    border: 2px solid #2a3fb8;
+  }
+  .bj-card-front {
+    background: #f2f0e8; color: #1a1a1a; border: 1px solid rgba(0,0,0,0.15);
+    transform: rotateY(180deg); font-size: 1.1rem; line-height: 1.1; gap: 2px;
+  }
+  .bj-card-front.red { color: var(--red); }
+  .bj-card-front .bj-suit { font-size: 1.3rem; }
+  @keyframes bjDealIn { to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes bjPulseWin { 0%,100% { box-shadow: 0 0 0 rgba(45,212,232,0); } 50% { box-shadow: 0 0 18px rgba(45,212,232,0.5); } }
+  @keyframes bjPulseLose { 0%,100% { box-shadow: 0 0 0 rgba(232,56,79,0); } 50% { box-shadow: 0 0 18px rgba(232,56,79,0.45); } }
+  .bj-table.win-glow { animation: bjPulseWin 1s ease; }
+  .bj-table.lose-glow { animation: bjPulseLose 1s ease; }
+
+  .bj-result {
+    text-align: center; font-weight: 800; font-size: 0.95rem; min-height: 22px; margin-bottom: 10px;
+    opacity: 0; transform: translateY(4px); transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .bj-result.show { opacity: 1; transform: translateY(0); }
+  .bj-result.win { color: var(--cyan); }
+  .bj-result.lose { color: var(--red); }
+  .bj-result.push { color: var(--ink-dim); }
+
+  .bj-inplay { display: flex; gap: 8px; }
+  .bj-btn {
+    flex: 1; padding: 15px 8px; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--bg-raised); color: var(--ink); font-weight: 800; font-size: 0.92rem;
+    cursor: pointer; transition: transform 0.1s ease, border-color 0.15s ease;
+  }
+  .bj-btn:active { transform: scale(0.96); }
+  .bj-btn.hit { border-color: var(--cyan); color: var(--cyan); }
+  .bj-btn.stand { border-color: var(--gold); color: var(--gold); }
+  .bj-btn.double { border-color: var(--purple); color: var(--purple); }
+  .bj-btn:disabled { opacity: 0.35; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -329,6 +397,7 @@
   <button class="tab-btn" data-tab="dice">🎲 Dice</button>
   <button class="tab-btn" data-tab="keno">#️⃣ Keno</button>
   <button class="tab-btn" data-tab="flip">🪙 Flip</button>
+  <button class="tab-btn" data-tab="blackjack">🃏 Blackjack</button>
   <button class="tab-btn" data-tab="leaderboard">🏆 Leaderboard</button>
   <button class="tab-btn" data-tab="rewards">🎁 Rewards</button>
 </div>
@@ -353,6 +422,7 @@
       <div class="game-shortcut" data-goto="dice"><div class="g-icon">🎲</div><div class="g-name">Dice</div></div>
       <div class="game-shortcut" data-goto="keno"><div class="g-icon">#️⃣</div><div class="g-name">Keno</div></div>
       <div class="game-shortcut" data-goto="flip"><div class="g-icon">🪙</div><div class="g-name">Flip</div></div>
+      <div class="game-shortcut" data-goto="blackjack"><div class="g-icon">🃏</div><div class="g-name">Blackjack</div></div>
     </div>
   </div>
 
@@ -486,6 +556,39 @@
       <div class="stat-box"><div class="stat-label">Payout</div><div class="stat-val" id="flipPayoutDisplay">0</div></div>
     </div>
     <button class="action-btn start" id="flipActionBtn">Flip</button>
+  </div>
+
+  <!-- ===== BLACKJACK ===== -->
+  <div class="panel" id="panel-blackjack">
+    <div class="bj-table">
+      <div class="bj-seat">
+        <div class="bj-seat-label">Dealer <span class="bj-score" id="bjDealerScore"></span></div>
+        <div class="bj-cards" id="bjDealerCards"></div>
+      </div>
+      <div class="bj-divider"></div>
+      <div class="bj-seat">
+        <div class="bj-seat-label">You <span class="bj-score" id="bjPlayerScore"></span></div>
+        <div class="bj-cards" id="bjPlayerCards"></div>
+      </div>
+    </div>
+    <div class="bj-result" id="bjResult"></div>
+    <div class="bet-row" id="bjBetRow">
+      <div style="flex:1;">
+        <div class="bet-label">Bet amount</div>
+        <input type="number" class="bet-input" id="blackjackBetInput" value="10" min="1">
+      </div>
+      <div class="bet-quick">
+        <button data-mult="0.5" data-target="blackjack">½</button>
+        <button data-mult="2" data-target="blackjack">2×</button>
+        <button data-max="1" data-target="blackjack">Max</button>
+      </div>
+    </div>
+    <button class="action-btn start" id="bjDealBtn">Deal</button>
+    <div class="bj-inplay" id="bjInPlay" style="display:none;">
+      <button class="bj-btn hit" id="bjHitBtn">Hit</button>
+      <button class="bj-btn stand" id="bjStandBtn">Stand</button>
+      <button class="bj-btn double" id="bjDoubleBtn">Double</button>
+    </div>
   </div>
 
   <!-- ===== LEADERBOARD ===== -->
@@ -1075,6 +1178,221 @@
     setTimeout(() => { plinkoBallEl.style.display = 'none'; document.querySelectorAll('.bucket').forEach(b => b.classList.remove('hit')) }, 1200)
   })
   buildPlinkoBoard()
+
+  // ================= BLACKJACK =================
+  const sleep = ms => new Promise(r => setTimeout(r, ms))
+  const BJ_SUITS = [{s:'♠',red:false},{s:'♥',red:true},{s:'♦',red:true},{s:'♣',red:false}]
+  const BJ_RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K']
+
+  const bjTableEl = document.getElementById('panel-blackjack').querySelector('.bj-table')
+  const bjDealerCardsEl = document.getElementById('bjDealerCards')
+  const bjPlayerCardsEl = document.getElementById('bjPlayerCards')
+  const bjDealerScoreEl = document.getElementById('bjDealerScore')
+  const bjPlayerScoreEl = document.getElementById('bjPlayerScore')
+  const bjResultEl = document.getElementById('bjResult')
+  const bjBetInput = document.getElementById('blackjackBetInput')
+  const bjDealBtn = document.getElementById('bjDealBtn')
+  const bjInPlayEl = document.getElementById('bjInPlay')
+  const bjHitBtn = document.getElementById('bjHitBtn')
+  const bjStandBtn = document.getElementById('bjStandBtn')
+  const bjDoubleBtn = document.getElementById('bjDoubleBtn')
+  const bjBetRowEl = document.getElementById('bjBetRow')
+
+  let bjDeck = [], bjPlayerHand = [], bjDealerHand = [], bjBet = 0, bjActive = false, bjResolving = false
+
+  function bjBuildDeck() {
+    const deck = []
+    for (const suit of BJ_SUITS) for (const rank of BJ_RANKS) deck.push({ rank, suit: suit.s, red: suit.red })
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[deck[i], deck[j]] = [deck[j], deck[i]]
+    }
+    return deck
+  }
+  function bjCardValue(rank) { if (rank === 'A') return 11; if (['K','Q','J'].includes(rank)) return 10; return parseInt(rank) }
+  function bjScore(hand) {
+    let total = 0, aces = 0
+    hand.forEach(c => { total += bjCardValue(c.rank); if (c.rank === 'A') aces++ })
+    while (total > 21 && aces > 0) { total -= 10; aces-- }
+    return total
+  }
+  function bjIsBlackjack(hand) { return hand.length === 2 && bjScore(hand) === 21 }
+
+  function bjRenderCard(card, faceDown, container) {
+    const el = document.createElement('div')
+    el.className = 'bj-card'
+    el.innerHTML = `
+      <div class="bj-card-inner">
+        <div class="bj-card-face bj-card-back"></div>
+        <div class="bj-card-face bj-card-front ${card.red ? 'red' : ''}">
+          <div>${card.rank}</div><div class="bj-suit">${card.suit}</div>
+        </div>
+      </div>`
+    container.appendChild(el)
+    if (!faceDown) requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('flipped')))
+    return el
+  }
+
+  function bjUpdateScores(revealDealer) {
+    bjPlayerScoreEl.textContent = bjPlayerHand.length ? bjScore(bjPlayerHand) : ''
+    if (!bjDealerHand.length) { bjDealerScoreEl.textContent = ''; return }
+    if (revealDealer) bjDealerScoreEl.textContent = bjScore(bjDealerHand)
+    else bjDealerScoreEl.textContent = bjDealerHand[0] ? bjCardValue(bjDealerHand[0].rank) + '+?' : ''
+  }
+
+  function bjShowResult(text, cls) {
+    bjResultEl.textContent = text
+    bjResultEl.className = 'bj-result show ' + cls
+  }
+
+  async function bjDealCard(hand, container, faceDown) {
+    const card = bjDeck.pop()
+    hand.push(card)
+    bjRenderCard(card, faceDown, container)
+    hapticTap()
+    await sleep(260)
+    return card
+  }
+
+  function bjSetInPlay(on) {
+    bjInPlayEl.style.display = on ? 'flex' : 'none'
+    bjDealBtn.style.display = on ? 'none' : 'block'
+    bjBetRowEl.style.pointerEvents = on ? 'none' : 'auto'
+    bjBetInput.disabled = on
+  }
+
+  async function bjStart() {
+    if (bjActive || bjResolving) return
+    bjBet = parseFloat(bjBetInput.value) || 0
+    if (bjBet <= 0) { showToast('Enter a valid bet', 'lose'); return }
+    if (bjBet > balance) { showToast('Not enough coins', 'lose'); return }
+    hapticTap()
+    balance -= bjBet; renderBalance(); saveBalance()
+
+    bjResultEl.className = 'bj-result'
+    bjDealerCardsEl.innerHTML = ''; bjPlayerCardsEl.innerHTML = ''
+    bjDeck = bjBuildDeck()
+    bjPlayerHand = []; bjDealerHand = []
+    bjActive = true; bjResolving = true
+    bjSetInPlay(true)
+    bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjDoubleBtn.disabled = true
+
+    await bjDealCard(bjPlayerHand, bjPlayerCardsEl, false)
+    await bjDealCard(bjDealerHand, bjDealerCardsEl, false)
+    await bjDealCard(bjPlayerHand, bjPlayerCardsEl, false)
+    await bjDealCard(bjDealerHand, bjDealerCardsEl, true) // hidden hole card
+    bjUpdateScores(false)
+
+    if (bjIsBlackjack(bjPlayerHand)) {
+      await sleep(300)
+      await bjResolve(true)
+      return
+    }
+
+    bjResolving = false
+    bjHitBtn.disabled = false
+    bjStandBtn.disabled = false
+    bjDoubleBtn.disabled = balance < bjBet
+  }
+
+  async function bjHit() {
+    if (!bjActive || bjResolving) return
+    bjDoubleBtn.disabled = true
+    await bjDealCard(bjPlayerHand, bjPlayerCardsEl, false)
+    const score = bjScore(bjPlayerHand)
+    bjUpdateScores(false)
+    if (score > 21) { await bjResolve(false, true) }
+    else if (score === 21) { await bjStand() }
+  }
+
+  async function bjDouble() {
+    if (!bjActive || bjResolving || balance < bjBet) return
+    bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjDoubleBtn.disabled = true
+    balance -= bjBet; bjBet *= 2; renderBalance(); saveBalance()
+    await bjDealCard(bjPlayerHand, bjPlayerCardsEl, false)
+    const score = bjScore(bjPlayerHand)
+    bjUpdateScores(false)
+    if (score > 21) await bjResolve(false, true)
+    else await bjStand()
+  }
+
+  async function bjStand() {
+    if (!bjActive || bjResolving) return
+    await bjResolve(false)
+  }
+
+  async function bjResolve(playerBlackjack, playerBusted) {
+    bjResolving = true
+    bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjDoubleBtn.disabled = true
+
+    // reveal hidden dealer card
+    const holeCardEl = bjDealerCardsEl.children[1]
+    if (holeCardEl && !holeCardEl.classList.contains('flipped')) {
+      holeCardEl.classList.add('flipped')
+      await sleep(400)
+    }
+    bjUpdateScores(true)
+
+    let dealerScore = bjScore(bjDealerHand)
+    const playerScore = bjScore(bjPlayerHand)
+
+    if (!playerBusted && !playerBlackjack) {
+      // Dealer draws to 17+. If the player busted, or has a natural
+      // blackjack, the dealer's hand is already final either way.
+      while (dealerScore < 17) {
+        await bjDealCard(bjDealerHand, bjDealerCardsEl, false)
+        dealerScore = bjScore(bjDealerHand)
+        bjUpdateScores(true)
+      }
+    }
+
+    let outcome, mult
+    if (playerBusted) {
+      outcome = 'lose'; mult = 0
+    } else if (playerBlackjack) {
+      if (bjIsBlackjack(bjDealerHand)) { outcome = 'push'; mult = 1 }
+      else { outcome = 'blackjack'; mult = 2.5 * HOUSE_EDGE }
+    } else if (dealerScore > 21) {
+      outcome = 'win'; mult = 2 * HOUSE_EDGE
+    } else if (dealerScore > playerScore) {
+      outcome = 'lose'; mult = 0
+    } else if (dealerScore < playerScore) {
+      outcome = 'win'; mult = 2 * HOUSE_EDGE
+    } else {
+      outcome = 'push'; mult = 1
+    }
+
+    const payout = Math.floor(bjBet * mult)
+    if (payout > 0) { balance += payout; renderBalance() }
+    await saveBalance()
+
+    if (outcome === 'blackjack') {
+      bjShowResult(`🂡 Blackjack! +${payout} coins`, 'win')
+      bjTableEl.classList.add('win-glow'); celebrateWin(2.5)
+    } else if (outcome === 'win') {
+      const label = playerBusted ? '' : dealerScore > 21 ? 'Dealer busts — ' : ''
+      bjShowResult(`${label}You win +${payout} coins`, 'win')
+      bjTableEl.classList.add('win-glow'); celebrateWin(2)
+    } else if (outcome === 'push') {
+      bjShowResult(`Push — ${payout} coins returned`, 'push')
+    } else {
+      bjShowResult(playerBusted ? `Bust — lost ${bjBet} coins` : `Dealer wins — lost ${bjBet} coins`, 'lose')
+      bjTableEl.classList.add('lose-glow'); reactLoss()
+    }
+    setTimeout(() => bjTableEl.classList.remove('win-glow', 'lose-glow'), 1000)
+
+    bjActive = false
+    bjSetInPlay(false)
+    setTimeout(() => {
+      bjResultEl.className = 'bj-result'
+      bjResolving = false
+    }, 2200)
+  }
+
+  bjDealBtn.addEventListener('click', bjStart)
+  bjHitBtn.addEventListener('click', bjHit)
+  bjStandBtn.addEventListener('click', bjStand)
+  bjDoubleBtn.addEventListener('click', bjDouble)
 
   // ---------------- init ----------------
   loadBalance()
