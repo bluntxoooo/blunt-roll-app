@@ -162,6 +162,8 @@
   .game-shortcut[data-goto="plinko"] { --tile-glow: rgba(255,201,61,0.2); }
   .game-shortcut[data-goto="dice"] { --tile-glow: rgba(255,71,87,0.18); }
   .game-shortcut[data-goto="flip"] { --tile-glow: rgba(255,201,61,0.22); }
+  .game-shortcut[data-goto="slots"] { --tile-glow: rgba(0,230,118,0.24); }
+  .game-shortcut[data-goto="crash"] { --tile-glow: rgba(255,71,87,0.24); }
 
   /* ---- Shared game controls ---- */
   .controls-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
@@ -328,12 +330,13 @@
 
   /* ---- Plinko ---- */
   .plinko-board { position: relative; background: var(--bg-raised); border: 1px solid var(--line); border-radius: 14px; padding: 16px 6px 6px 6px; margin-bottom: 14px; overflow: hidden; }
-  .peg-row { display: flex; justify-content: center; gap: 14px; margin-bottom: 14px; }
+  .peg-row { display: flex; justify-content: center; gap: 14px; margin-bottom: 14px; position: relative; }
   .peg { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-dim); opacity: 0.5; transition: background 0.15s ease, opacity 0.15s ease, transform 0.15s ease; }
   .peg.hit { background: var(--cyan); opacity: 1; transform: scale(1.6); }
   .plinko-ball {
     position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--cyan);
-    box-shadow: 0 0 8px var(--cyan); transition: left 0.16s cubic-bezier(.4,.1,.6,.9), top 0.16s cubic-bezier(.4,.1,.6,.9); top: 10px; left: 50%;
+    box-shadow: 0 0 8px var(--cyan); top: 10px; left: 50%; margin-left: -7px;
+    transition: left 0.13s linear, top 0.13s linear;
   }
   .plinko-ball.landed { animation: ballDrop 0.35s ease; }
   .bucket-row { display: flex; gap: 4px; margin-top: 6px; }
@@ -452,6 +455,63 @@
   .bj-btn.stand { border-color: var(--gold); color: var(--gold); }
   .bj-btn.double { border-color: var(--purple); color: var(--purple); }
   .bj-btn:disabled { opacity: 0.35; pointer-events: none; }
+
+  /* ---- Slots ---- */
+  .slots-machine {
+    background: linear-gradient(160deg, var(--bg-tile), var(--bg-raised));
+    border: 1px solid var(--line); border-radius: 18px; padding: 18px;
+    margin-bottom: 16px; position: relative; overflow: hidden;
+  }
+  .slots-machine::before {
+    content: ''; position: absolute; top: -30%; left: 50%; transform: translateX(-50%);
+    width: 220px; height: 140px; background: radial-gradient(circle, rgba(0,230,118,0.14), transparent 70%);
+  }
+  .slots-reels { display: flex; gap: 8px; position: relative; z-index: 1; }
+  .slot-reel {
+    flex: 1; height: 168px; overflow: hidden; background: var(--navy-deep);
+    border-radius: 12px; border: 1px solid var(--line); position: relative;
+    box-shadow: inset 0 8px 14px -8px rgba(0,0,0,0.7), inset 0 -8px 14px -8px rgba(0,0,0,0.7);
+  }
+  .slot-strip { display: flex; flex-direction: column; will-change: transform; }
+  .slot-cell {
+    height: 56px; display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+  }
+  .slot-reel::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: 12px;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.02) inset;
+  }
+  .slot-payline { position: absolute; left: 0; right: 0; top: 56px; height: 56px; pointer-events: none; z-index: 2; border-top: 1px dashed rgba(255,201,61,0.35); border-bottom: 1px dashed rgba(255,201,61,0.35); }
+  .slots-machine.win-glow { animation: bjPulseWin 1s ease; }
+  .slot-cell.win-cell { animation: tileGlow 0.9s ease infinite; border-radius: 8px; }
+  .slots-paytable { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0; }
+  .slots-paytable .pt-item {
+    background: var(--bg-raised); border: 1px solid var(--line); border-radius: 8px;
+    padding: 6px 9px; font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; color: var(--ink-dim);
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  /* ---- Crash ---- */
+  .crash-stage {
+    background: radial-gradient(ellipse at 50% 100%, rgba(255,71,87,0.08), transparent 60%), var(--bg-raised);
+    border: 1px solid var(--line); border-radius: 18px; padding: 30px 16px;
+    margin-bottom: 16px; text-align: center; position: relative; overflow: hidden; min-height: 220px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .crash-mult { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 3.2rem; color: var(--cyan); transition: color 0.15s ease; }
+  .crash-mult.crashed { color: var(--red); }
+  .crash-mult.cashed { color: var(--gold); }
+  .crash-status { color: var(--ink-dim); font-size: 0.85rem; font-weight: 700; margin-top: 8px; min-height: 20px; }
+  .crash-rocket { font-size: 1.8rem; margin-bottom: 6px; transform: translateY(0) rotate(-45deg); transition: transform 0.1s linear; }
+  .crash-history { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .crash-history .ch-item {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 700;
+    padding: 4px 8px; border-radius: 100px; background: var(--bg-raised); border: 1px solid var(--line); color: var(--ink-dim);
+  }
+  .crash-history .ch-item.good { color: var(--cyan); border-color: rgba(0,230,118,0.3); }
+  .crash-history .ch-item.bad { color: var(--red); border-color: rgba(255,71,87,0.3); }
+  .crash-actions { display: flex; gap: 8px; }
+  .crash-actions .action-btn { flex: 1; }
 </style>
 </head>
 <body>
@@ -472,6 +532,8 @@
   <button class="tab-btn" data-tab="keno">#️⃣ Keno</button>
   <button class="tab-btn" data-tab="flip">🪙 Flip</button>
   <button class="tab-btn" data-tab="blackjack">🃏 Blackjack</button>
+  <button class="tab-btn" data-tab="slots">🎰 Slots</button>
+  <button class="tab-btn" data-tab="crash">🚀 Crash</button>
   <button class="tab-btn" data-tab="leaderboard">🏆 Leaderboard</button>
   <button class="tab-btn" data-tab="rewards">🎁 Rewards</button>
 </div>
@@ -502,7 +564,9 @@
     </div>
     <div class="section-label">Games</div>
     <div class="games-grid">
-      <div class="game-shortcut" data-goto="blackjack"><span class="g-tag">New</span><div class="g-icon">♠️</div><div class="g-name">Blackjack</div></div>
+      <div class="game-shortcut" data-goto="slots"><span class="g-tag">New</span><div class="g-icon">🎰</div><div class="g-name">Slots</div></div>
+      <div class="game-shortcut" data-goto="crash"><span class="g-tag">New</span><div class="g-icon">🚀</div><div class="g-name">Crash</div></div>
+      <div class="game-shortcut" data-goto="blackjack"><div class="g-icon">♠️</div><div class="g-name">Blackjack</div></div>
       <div class="game-shortcut" data-goto="mines"><div class="g-icon">💎</div><div class="g-name">Mines</div></div>
       <div class="game-shortcut" data-goto="plinko"><div class="g-icon">🔺</div><div class="g-name">Plinko</div></div>
       <div class="game-shortcut" data-goto="dice"><div class="g-icon">🎲</div><div class="g-name">Dice</div></div>
@@ -559,7 +623,7 @@
     </div>
     <div class="plinko-board">
       <div id="plinkoPegs"></div>
-      <div class="plinko-ball" id="plinkoBall" style="display:none;"></div>
+      <div id="plinkoBalls"></div>
       <div class="bucket-row" id="plinkoBuckets"></div>
     </div>
     <button class="action-btn start" id="plinkoActionBtn">Drop</button>
@@ -673,6 +737,52 @@
       <button class="bj-btn hit" id="bjHitBtn">Hit</button>
       <button class="bj-btn stand" id="bjStandBtn">Stand</button>
       <button class="bj-btn double" id="bjDoubleBtn">Double</button>
+    </div>
+  </div>
+
+  <!-- ===== SLOTS ===== -->
+  <div class="panel" id="panel-slots">
+    <div class="slots-machine" id="slotsMachine">
+      <div class="slots-reels" id="slotsReels"></div>
+      <div class="slot-payline"></div>
+    </div>
+    <div class="slots-paytable" id="slotsPaytable"></div>
+    <div class="bet-row">
+      <div style="flex:1;">
+        <div class="bet-label">Bet amount</div>
+        <input type="number" class="bet-input" id="slotsBetInput" value="10" min="1">
+      </div>
+      <div class="bet-quick">
+        <button data-mult="0.5" data-target="slots">½</button>
+        <button data-mult="2" data-target="slots">2×</button>
+        <button data-max="1" data-target="slots">Max</button>
+      </div>
+    </div>
+    <button class="action-btn start" id="slotsActionBtn">Spin</button>
+  </div>
+
+  <!-- ===== CRASH ===== -->
+  <div class="panel" id="panel-crash">
+    <div class="crash-history" id="crashHistory"></div>
+    <div class="crash-stage">
+      <div class="crash-rocket" id="crashRocket">🚀</div>
+      <div class="crash-mult" id="crashMultDisplay">1.00×</div>
+      <div class="crash-status" id="crashStatus">Place a bet to start a round</div>
+    </div>
+    <div class="bet-row">
+      <div style="flex:1;">
+        <div class="bet-label">Bet amount</div>
+        <input type="number" class="bet-input" id="crashBetInput" value="10" min="1">
+      </div>
+      <div class="bet-quick">
+        <button data-mult="0.5" data-target="crash">½</button>
+        <button data-mult="2" data-target="crash">2×</button>
+        <button data-max="1" data-target="crash">Max</button>
+      </div>
+    </div>
+    <div class="crash-actions">
+      <button class="action-btn start" id="crashBetBtn">Place Bet</button>
+      <button class="action-btn cashout" id="crashCashoutBtn" style="display:none;">Cashout</button>
     </div>
   </div>
 
@@ -1143,14 +1253,12 @@
   })
   buildKenoGrid()
 
-  // ================= PLINKO =================
+  // ================= PLINKO (fixed) =================
   const PLINKO_ROWS = 10
   let plinkoRisk = 'medium'
-  let plinkoBusy = false
-  let plinkoCleanupTimer = null
   const plinkoPegsEl = document.getElementById('plinkoPegs')
   const plinkoBucketsEl = document.getElementById('plinkoBuckets')
-  const plinkoBallEl = document.getElementById('plinkoBall')
+  const plinkoBallsEl = document.getElementById('plinkoBalls')
   const plinkoBetInput = document.getElementById('plinkoBetInput')
   const plinkoActionBtn = document.getElementById('plinkoActionBtn')
   const RISK_EXP = { low: 0.55, medium: 1.0, high: 1.7 }
@@ -1170,9 +1278,12 @@
     }
     return mults
   }
+  // Rows now match PLINKO_ROWS exactly (row i has i+1 pegs), so the number of
+  // visual peg rows lines up 1:1 with the number of coin-flip steps in the
+  // drop animation below — this mismatch was the root cause of the janky fall.
   function buildPlinkoBoard() {
     plinkoPegsEl.innerHTML = ''
-    for (let r = 2; r <= PLINKO_ROWS; r++) {
+    for (let r = 1; r <= PLINKO_ROWS; r++) {
       const row = document.createElement('div'); row.className = 'peg-row'; row.dataset.row = r
       for (let i = 0; i <= r; i++) { const p = document.createElement('div'); p.className = 'peg'; row.appendChild(p) }
       plinkoPegsEl.appendChild(row)
@@ -1193,85 +1304,67 @@
     })
   })
 
-  async function dropPlinkoBall(targetBucket) {
-    // Walk the ball down row by row, biasing its left/right jitter so it
-    // actually ends up over the winning bucket — this is the visible "fall".
-    const rows = plinkoPegsEl.querySelectorAll('.peg-row')
-    const boardRect = plinkoPegsEl.getBoundingClientRect()
-    const boardWidth = boardRect.width || 300
-    const finalLeftPct = (targetBucket / PLINKO_ROWS) * 100
-
-    plinkoBallEl.style.display = 'block'
-    plinkoBallEl.classList.remove('landed')
-    plinkoBallEl.style.top = '4px'
-    plinkoBallEl.style.left = '50%'
-    await new Promise(r => setTimeout(r, 40))
-
-    let leftPct = 50
-    for (let step = 0; step < rows.length; step++) {
-      const row = rows[step]
-      const progress = (step + 1) / rows.length
-      // ease left position toward the final bucket while still wobbling
-      const wobble = (Math.random() - 0.5) * (12 * (1 - progress))
-      leftPct = 50 + (finalLeftPct - 50) * progress + wobble
-      leftPct = Math.max(4, Math.min(96, leftPct))
-      const rowTop = row.offsetTop + row.offsetHeight / 2
-      plinkoBallEl.style.top = rowTop + 'px'
-      plinkoBallEl.style.left = leftPct + '%'
-
-      // light up the peg nearest this horizontal position for a tactile feel
-      const pegs = row.querySelectorAll('.peg')
-      if (pegs.length) {
-        const pegIndex = Math.min(pegs.length - 1, Math.round((leftPct / 100) * (pegs.length - 1)))
-        pegs[pegIndex].classList.add('hit')
-        setTimeout(() => pegs[pegIndex].classList.remove('hit'), 300)
-        hapticTap()
-      }
-      await new Promise(r => setTimeout(r, 130))
-    }
-
-    // final settle into the bucket
-    const bucketRow = plinkoBucketsEl
-    plinkoBallEl.style.top = (bucketRow.offsetTop + 6) + 'px'
-    plinkoBallEl.style.left = finalLeftPct + '%'
-    plinkoBallEl.classList.add('landed')
-  }
-
-  plinkoActionBtn.addEventListener('click', async () => {
-    if (plinkoBusy) return
+  // Each drop gets its own ball element, so nothing blocks the button —
+  // click Drop as many times as you want and watch multiple balls fall at once.
+  async function dropOnePlinkoBall() {
     const bet = parseFloat(plinkoBetInput.value) || 0
     if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
     if (bet > balance) { showToast('Not enough coins', 'lose'); return }
-    plinkoBusy = true
-    if (plinkoCleanupTimer) { clearTimeout(plinkoCleanupTimer); plinkoCleanupTimer = null }
-    balance -= bet; renderBalance()
-    plinkoActionBtn.disabled = true
+    hapticTap()
+    balance -= bet; renderBalance(); saveBalance()
+
     let bucket = 0
     for (let i = 0; i < PLINKO_ROWS; i++) if (Math.random() < 0.5) bucket++
     const mults = plinkoMultipliers()
     const mult = mults[bucket]
+    const finalLeftPct = (bucket / PLINKO_ROWS) * 100
 
-    await dropPlinkoBall(bucket)
+    const ball = document.createElement('div')
+    ball.className = 'plinko-ball'
+    ball.style.top = '4px'
+    ball.style.left = '50%'
+    plinkoBallsEl.appendChild(ball)
 
-    document.querySelectorAll('.bucket').forEach((b, i) => b.classList.toggle('hit', i === bucket))
+    const rows = plinkoPegsEl.querySelectorAll('.peg-row')
+    let leftPct = 50
+    for (let step = 0; step < rows.length; step++) {
+      const row = rows[step]
+      const progress = (step + 1) / rows.length
+      const wobble = (Math.random() - 0.5) * (10 * (1 - progress))
+      leftPct = 50 + (finalLeftPct - 50) * progress + wobble
+      leftPct = Math.max(4, Math.min(96, leftPct))
+      const rowTop = row.offsetTop + row.offsetHeight / 2
+      ball.style.top = rowTop + 'px'
+      ball.style.left = leftPct + '%'
+
+      const pegs = row.querySelectorAll('.peg')
+      if (pegs.length) {
+        const pegIndex = Math.min(pegs.length - 1, Math.round((leftPct / 100) * (pegs.length - 1)))
+        pegs[pegIndex].classList.add('hit')
+        setTimeout(() => pegs[pegIndex].classList.remove('hit'), 260)
+      }
+      await new Promise(r => setTimeout(r, 110))
+    }
+
+    ball.style.top = (plinkoBucketsEl.offsetTop + 6) + 'px'
+    ball.style.left = finalLeftPct + '%'
+    ball.classList.add('landed')
+
+    const bucketEls = plinkoBucketsEl.querySelectorAll('.bucket')
+    bucketEls[bucket].classList.add('hit')
+
     const payout = Math.floor(bet * mult)
     balance += payout
-    if (mult >= 1) {
-      showToast(`${mult.toFixed(2)}× — +${payout} coins`, 'win', mult >= 3)
-      celebrateWin(mult)
-    } else {
-      showToast(`${mult.toFixed(2)}× — kept ${payout} coins`, 'lose')
-      reactLoss()
-    }
+    if (mult >= 1) { showToast(`${mult.toFixed(2)}× — +${payout} coins`, 'win', mult >= 3); celebrateWin(mult) }
+    else { showToast(`${mult.toFixed(2)}× — kept ${payout} coins`, 'lose'); reactLoss() }
     renderBalance(); await saveBalance()
-    plinkoCleanupTimer = setTimeout(() => {
-      plinkoBallEl.style.display = 'none'
-      document.querySelectorAll('.bucket').forEach(b => b.classList.remove('hit'))
-      plinkoActionBtn.disabled = false
-      plinkoBusy = false
-      plinkoCleanupTimer = null
-    }, 1200)
-  })
+
+    setTimeout(() => {
+      ball.remove()
+      bucketEls[bucket].classList.remove('hit')
+    }, 900)
+  }
+  plinkoActionBtn.addEventListener('click', () => { dropOnePlinkoBall() })
   buildPlinkoBoard()
 
   // ================= BLACKJACK =================
@@ -1325,8 +1418,6 @@
         </div>
       </div>`
     container.appendChild(el)
-    // wait for the deal-in animation to actually finish before flipping —
-    // flipping while it's still landing was what caused the visible flicker
     if (!faceDown) el.addEventListener('animationend', () => el.classList.add('flipped'), { once: true })
     return el
   }
@@ -1379,19 +1470,19 @@
     await bjDealCard(bjPlayerHand, bjPlayerCardsEl, false)
     await bjDealCard(bjDealerHand, bjDealerCardsEl, false)
     await bjDealCard(bjPlayerHand, bjPlayerCardsEl, false)
-    await bjDealCard(bjDealerHand, bjDealerCardsEl, true) // hidden hole card
+    await bjDealCard(bjDealerHand, bjDealerCardsEl, true)
     bjUpdateScores(false)
 
     if (bjIsBlackjack(bjPlayerHand)) {
       await sleep(300)
-      await bjResolve(true) // bjResolve clears bjBusy once the round fully settles
+      await bjResolve(true)
       return
     }
 
     bjHitBtn.disabled = false
     bjStandBtn.disabled = false
     bjDoubleBtn.disabled = balance < bjBet
-    bjBusy = false // now waiting on the player's decision
+    bjBusy = false
   }
 
   async function bjHit() {
@@ -1405,7 +1496,7 @@
     if (score === 21) { await bjStandFlow(); return }
     bjHitBtn.disabled = false
     bjStandBtn.disabled = false
-    bjBusy = false // double is never re-enabled after the first hit — only valid on 2 cards
+    bjBusy = false
   }
 
   async function bjDouble() {
@@ -1420,15 +1511,12 @@
     else await bjStandFlow()
   }
 
-  // Button handler — guarded, only fires when it's the player's turn to act.
   function bjStand() {
     if (!bjActive || bjBusy) return
     bjBusy = true
     bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjDoubleBtn.disabled = true
     bjStandFlow()
   }
-  // Internal flow, reused by Hit (auto-stand at 21) and Double — caller already
-  // holds the busy lock, so this never re-checks it.
   async function bjStandFlow() {
     await bjResolve(false)
   }
@@ -1436,7 +1524,6 @@
   async function bjResolve(playerBlackjack, playerBusted) {
     bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjDoubleBtn.disabled = true
 
-    // reveal hidden dealer card
     const holeCardEl = bjDealerCardsEl.children[1]
     if (holeCardEl && !holeCardEl.classList.contains('flipped')) {
       holeCardEl.classList.add('flipped')
@@ -1448,8 +1535,6 @@
     const playerScore = bjScore(bjPlayerHand)
 
     if (!playerBusted && !playerBlackjack) {
-      // Dealer draws to 17+. If the player busted, or has a natural
-      // blackjack, the dealer's hand is already final either way.
       while (dealerScore < 17) {
         await bjDealCard(bjDealerHand, bjDealerCardsEl, false)
         dealerScore = bjScore(bjDealerHand)
@@ -1504,6 +1589,224 @@
   bjHitBtn.addEventListener('click', bjHit)
   bjStandBtn.addEventListener('click', bjStand)
   bjDoubleBtn.addEventListener('click', bjDouble)
+
+  // ================= SLOTS =================
+  const SLOT_SYMBOLS = [
+    { sym: '🍒', weight: 34, pay3: 3,  pay2: 1 },
+    { sym: '🍋', weight: 26, pay3: 5,  pay2: 0 },
+    { sym: '🔔', weight: 18, pay3: 8,  pay2: 0 },
+    { sym: '🍀', weight: 12, pay3: 15, pay2: 0 },
+    { sym: '💎', weight: 7,  pay3: 25, pay2: 0 },
+    { sym: '7️⃣', weight: 3,  pay3: 50, pay2: 0 },
+  ]
+  const SLOT_TOTAL_WEIGHT = SLOT_SYMBOLS.reduce((s, x) => s + x.weight, 0)
+  const CELL_H = 56
+  const slotsReelsEl = document.getElementById('slotsReels')
+  const slotsBetInput = document.getElementById('slotsBetInput')
+  const slotsActionBtn = document.getElementById('slotsActionBtn')
+  const slotsMachineEl = document.getElementById('slotsMachine')
+  const slotsPaytableEl = document.getElementById('slotsPaytable')
+
+  function slotsRandomSymbol() {
+    let r = Math.random() * SLOT_TOTAL_WEIGHT
+    for (const s of SLOT_SYMBOLS) { if (r < s.weight) return s; r -= s.weight }
+    return SLOT_SYMBOLS[0]
+  }
+  function buildSlotsPaytable() {
+    slotsPaytableEl.innerHTML = SLOT_SYMBOLS.map(s => `<div class="pt-item">${s.sym}${s.sym}${s.sym} = ${s.pay3}×</div>`).join('')
+  }
+  function buildSlotsReels() {
+    slotsReelsEl.innerHTML = ''
+    for (let r = 0; r < 3; r++) {
+      const reel = document.createElement('div'); reel.className = 'slot-reel'
+      const strip = document.createElement('div'); strip.className = 'slot-strip'
+      strip.style.transform = 'translateY(0px)'
+      for (let i = 0; i < 3; i++) {
+        const cell = document.createElement('div'); cell.className = 'slot-cell'
+        cell.textContent = slotsRandomSymbol().sym
+        strip.appendChild(cell)
+      }
+      reel.appendChild(strip)
+      slotsReelsEl.appendChild(reel)
+    }
+  }
+  async function spinReel(strip, finalSymbol, delay) {
+    // Build a long strip of random symbols ending in the winning middle row,
+    // then transition the whole strip upward — classic slot scroll-and-stop.
+    const spinLength = 22
+    const seq = []
+    for (let i = 0; i < spinLength; i++) seq.push(slotsRandomSymbol().sym)
+    seq.push(finalSymbol) // this becomes the middle (payline) cell
+    seq.push(slotsRandomSymbol().sym)
+
+    strip.style.transition = 'none'
+    strip.innerHTML = ''
+    seq.forEach(sym => {
+      const cell = document.createElement('div'); cell.className = 'slot-cell'; cell.textContent = sym
+      strip.appendChild(cell)
+    })
+    strip.style.transform = 'translateY(0px)'
+    void strip.offsetHeight
+
+    const targetIndex = spinLength - 1 // finalSymbol's index -> lands in middle row
+    const targetY = -(targetIndex - 1) * CELL_H // -1 so the row above shows above payline
+
+    await new Promise(r => setTimeout(r, delay))
+    strip.style.transition = `transform ${1.1 + delay / 1000}s cubic-bezier(.12,.85,.15,1)`
+    strip.style.transform = `translateY(${targetY}px)`
+    await new Promise(r => strip.addEventListener('transitionend', r, { once: true }))
+  }
+
+  slotsActionBtn.addEventListener('click', async () => {
+    const bet = parseFloat(slotsBetInput.value) || 0
+    if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
+    if (bet > balance) { showToast('Not enough coins', 'lose'); return }
+    hapticTap()
+    balance -= bet; renderBalance()
+    slotsActionBtn.disabled = true
+    slotsMachineEl.classList.remove('win-glow')
+
+    const results = [slotsRandomSymbol(), slotsRandomSymbol(), slotsRandomSymbol()]
+    const strips = slotsReelsEl.querySelectorAll('.slot-strip')
+    await Promise.all([
+      spinReel(strips[0], results[0].sym, 0),
+      spinReel(strips[1], results[1].sym, 250),
+      spinReel(strips[2], results[2].sym, 500),
+    ])
+
+    const [a, b, c] = results.map(r => r.sym)
+    let mult = 0
+    if (a === b && b === c) {
+      mult = results[0].pay3 * HOUSE_EDGE
+    } else if (a === b || b === c || a === c) {
+      // any matching pair including the middle reel pays the small pay2 bonus
+      const matchSym = a === b ? results[0] : (b === c ? results[1] : results[0])
+      mult = matchSym.pay2 * HOUSE_EDGE
+    }
+    const payout = Math.floor(bet * mult)
+
+    if (payout > 0) {
+      balance += payout
+      showToast(`${a}${b}${c} — +${payout} coins`, 'win', mult >= 15)
+      celebrateWin(mult)
+      slotsMachineEl.classList.add('win-glow')
+      strips.forEach(s => s.children[1]?.classList.add('win-cell'))
+      setTimeout(() => strips.forEach(s => s.children[1]?.classList.remove('win-cell')), 1400)
+    } else {
+      showToast(`${a}${b}${c} — lost ${bet} coins`, 'lose')
+      reactLoss()
+    }
+    renderBalance(); await saveBalance()
+    slotsActionBtn.disabled = false
+  })
+  buildSlotsPaytable()
+  buildSlotsReels()
+
+  // ================= CRASH =================
+  const CRASH_GROWTH = Math.log(2) / 3.2 // multiplier doubles roughly every ~3.2s
+  const crashMultEl = document.getElementById('crashMultDisplay')
+  const crashStatusEl = document.getElementById('crashStatus')
+  const crashRocketEl = document.getElementById('crashRocket')
+  const crashBetInput = document.getElementById('crashBetInput')
+  const crashBetBtn = document.getElementById('crashBetBtn')
+  const crashCashoutBtn = document.getElementById('crashCashoutBtn')
+  const crashHistoryEl = document.getElementById('crashHistory')
+
+  let crashState = 'idle' // idle | running | crashed
+  let crashPoint = 1, crashStart = 0, crashBet = 0, crashCashedAt = null, crashRAF = null
+  const crashHistoryList = []
+
+  function generateCrashPoint() {
+    const instantCrashChance = 0.03
+    const r = Math.random()
+    if (r < instantCrashChance) return 1.00
+    const raw = (1 - instantCrashChance) / (1 - r)
+    return Math.min(100, Math.max(1.01, raw))
+  }
+
+  function pushCrashHistory(point) {
+    crashHistoryList.unshift(point)
+    if (crashHistoryList.length > 10) crashHistoryList.pop()
+    crashHistoryEl.innerHTML = crashHistoryList.map(p =>
+      `<div class="ch-item ${p >= 2 ? 'good' : 'bad'}">${p.toFixed(2)}×</div>`
+    ).join('')
+  }
+
+  function crashTick(now) {
+    if (crashState !== 'running') return
+    const elapsed = (now - crashStart) / 1000
+    const mult = Math.exp(CRASH_GROWTH * elapsed)
+    if (mult >= crashPoint) {
+      crashFinish()
+      return
+    }
+    crashMultEl.textContent = mult.toFixed(2) + '×'
+    crashRocketEl.style.transform = `translateY(${-Math.min(40, elapsed * 6)}px) rotate(-45deg)`
+    crashRAF = requestAnimationFrame(crashTick)
+  }
+
+  function crashFinish() {
+    crashState = 'crashed'
+    crashMultEl.textContent = crashPoint.toFixed(2) + '×'
+    crashMultEl.classList.add('crashed')
+    crashRocketEl.textContent = '💥'
+    pushCrashHistory(crashPoint)
+    if (crashCashedAt == null) {
+      crashStatusEl.textContent = `Crashed at ${crashPoint.toFixed(2)}× — lost ${crashBet} coins`
+      reactLoss()
+    } else {
+      crashStatusEl.textContent = `Crashed at ${crashPoint.toFixed(2)}× — you were already out at ${crashCashedAt.toFixed(2)}×`
+    }
+    crashCashoutBtn.style.display = 'none'
+    setTimeout(() => {
+      crashState = 'idle'
+      crashMultEl.textContent = '1.00×'
+      crashMultEl.classList.remove('crashed', 'cashed')
+      crashRocketEl.textContent = '🚀'
+      crashRocketEl.style.transform = 'translateY(0) rotate(-45deg)'
+      crashStatusEl.textContent = 'Place a bet to start a round'
+      crashBetBtn.style.display = 'block'
+      crashBetBtn.disabled = false
+      crashBetInput.disabled = false
+    }, 2200)
+  }
+
+  function crashCashout() {
+    if (crashState !== 'running' || crashCashedAt != null) return
+    const elapsed = (performance.now() - crashStart) / 1000
+    const mult = Math.exp(CRASH_GROWTH * elapsed)
+    crashCashedAt = mult
+    const payout = Math.floor(crashBet * mult * HOUSE_EDGE)
+    balance += payout
+    renderBalance(); saveBalance()
+    hapticSuccess()
+    crashMultEl.classList.add('cashed')
+    crashStatusEl.textContent = `Cashed out at ${mult.toFixed(2)}× — +${payout} coins`
+    crashCashoutBtn.style.display = 'none'
+    celebrateWin(mult)
+  }
+
+  crashBetBtn.addEventListener('click', () => {
+    if (crashState !== 'idle') return
+    const bet = parseFloat(crashBetInput.value) || 0
+    if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
+    if (bet > balance) { showToast('Not enough coins', 'lose'); return }
+    hapticTap()
+    crashBet = bet
+    crashCashedAt = null
+    balance -= bet; renderBalance(); saveBalance()
+
+    crashState = 'running'
+    crashPoint = generateCrashPoint()
+    crashStart = performance.now()
+    crashMultEl.classList.remove('crashed', 'cashed')
+    crashStatusEl.textContent = 'Round in progress — cash out any time'
+    crashBetBtn.style.display = 'none'
+    crashBetInput.disabled = true
+    crashCashoutBtn.style.display = 'block'
+    crashRAF = requestAnimationFrame(crashTick)
+  })
+  crashCashoutBtn.addEventListener('click', crashCashout)
 
   // ---------------- init ----------------
   loadBalance()
