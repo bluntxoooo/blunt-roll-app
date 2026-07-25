@@ -46,7 +46,9 @@
     border-radius: 100px; padding: 7px 14px;
     display: flex; align-items: center; gap: 7px;
     font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
   }
+  .balance-pill.bump { animation: balancePop 0.4s ease; }
   .balance-pill .coin { color: var(--gold); }
 
   /* Tab strip */
@@ -61,12 +63,14 @@
     color: var(--ink-dim); border-radius: 10px; padding: 10px 14px;
     font-weight: 700; font-size: 0.85rem; cursor: pointer;
     display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    transition: transform 0.12s ease;
   }
+  .tab-btn:active { transform: scale(0.94); }
   .tab-btn.active { color: var(--bg); background: var(--cyan); border-color: var(--cyan); }
 
-  main { padding: 18px; max-width: 460px; margin: 0 auto; }
+  main { padding: 18px; max-width: 460px; margin: 0 auto; position: relative; }
   .panel { display: none; }
-  .panel.active { display: block; }
+  .panel.active { display: block; animation: panelIn 0.25s ease; }
 
   /* ---- Home ---- */
   .home-balance-card {
@@ -86,8 +90,9 @@
   .game-shortcut {
     background: var(--bg-raised); border: 1px solid var(--line); border-radius: 12px;
     padding: 16px 8px; text-align: center; cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.12s ease;
   }
-  .game-shortcut:active { border-color: var(--cyan); }
+  .game-shortcut:active { border-color: var(--cyan); transform: scale(0.95); }
   .game-shortcut .g-icon { font-size: 1.6rem; margin-bottom: 6px; }
   .game-shortcut .g-name { font-size: 0.78rem; font-weight: 700; }
 
@@ -123,26 +128,61 @@
   .stats-row { display: flex; gap: 10px; margin-bottom: 14px; }
   .stat-box { flex: 1; background: var(--bg-raised); border: 1px solid var(--line); border-radius: 10px; padding: 12px; text-align: center; }
   .stat-box .stat-label { color: var(--ink-dim); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
-  .stat-box .stat-val { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.1rem; margin-top: 4px; color: var(--cyan); }
+  .stat-box .stat-val { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.1rem; margin-top: 4px; color: var(--cyan); transition: color 0.2s ease; }
 
   .action-btn {
     width: 100%; padding: 16px; border-radius: 12px; border: none;
-    font-weight: 800; font-size: 1.05rem; cursor: pointer; transition: opacity 0.2s ease;
+    font-weight: 800; font-size: 1.05rem; cursor: pointer; transition: opacity 0.2s ease, transform 0.1s ease;
   }
+  .action-btn:active { transform: scale(0.98); }
   .action-btn.start { background: var(--cyan); color: #06171a; }
-  .action-btn.cashout { background: var(--gold); color: #241a02; }
+  .action-btn.cashout { background: var(--gold); color: #241a02; animation: cashoutPulse 1.1s ease-in-out infinite; }
   .action-btn:disabled { opacity: 0.4; pointer-events: none; }
 
   .toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
-    background: var(--bg-raised); border: 1px solid var(--line); border-radius: 10px;
-    padding: 12px 20px; font-weight: 700; font-size: 0.9rem;
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px) scale(0.9);
+    background: var(--bg-raised); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 24px; font-weight: 800; font-size: 1rem;
     opacity: 0; transition: opacity 0.25s ease, transform 0.25s ease;
     pointer-events: none; z-index: 50; white-space: nowrap;
+    display: flex; align-items: center; gap: 8px;
   }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .toast.win { border-color: var(--cyan); color: var(--cyan); }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  .toast.win { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 24px rgba(45,212,232,0.35); }
+  .toast.win.big { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 32px rgba(240,185,61,0.45); animation: toastBig 0.5s ease; }
   .toast.lose { border-color: var(--red); color: var(--red); }
+
+  /* screen flash + shake for feedback */
+  .flash-layer {
+    position: fixed; inset: 0; pointer-events: none; z-index: 40; opacity: 0;
+  }
+  .flash-layer.win { background: radial-gradient(circle at 50% 30%, rgba(45,212,232,0.18), transparent 70%); animation: flashPulse 0.6s ease; }
+  .flash-layer.big { background: radial-gradient(circle at 50% 30%, rgba(240,185,61,0.28), transparent 70%); animation: flashPulse 0.8s ease; }
+  .flash-layer.lose { background: radial-gradient(circle at 50% 30%, rgba(232,56,79,0.16), transparent 70%); animation: flashPulse 0.5s ease; }
+  .shake { animation: shakeX 0.4s ease; }
+
+  /* confetti particles */
+  .particle-layer { position: fixed; inset: 0; pointer-events: none; z-index: 45; overflow: hidden; }
+  .particle {
+    position: absolute; top: 40%; left: 50%; font-size: 1.2rem;
+    animation: particleFly 1s cubic-bezier(.2,.7,.3,1) forwards;
+  }
+
+  @keyframes balancePop { 0% { transform: scale(1); } 35% { transform: scale(1.12); border-color: var(--gold); } 100% { transform: scale(1); } }
+  @keyframes cashoutPulse { 0%, 100% { box-shadow: 0 0 0 rgba(240,185,61,0); } 50% { box-shadow: 0 0 18px rgba(240,185,61,0.6); } }
+  @keyframes toastBig { 0% { transform: translateX(-50%) translateY(0) scale(0.7); } 60% { transform: translateX(-50%) translateY(0) scale(1.08); } 100% { transform: translateX(-50%) translateY(0) scale(1); } }
+  @keyframes flashPulse { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes shakeX { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(3px); } }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes particleFly {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6) rotate(0deg); }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.1) rotate(var(--rot)); }
+  }
+  @keyframes tileGlow { 0%,100% { box-shadow: 0 0 0 rgba(45,212,232,0); } 50% { box-shadow: 0 0 14px rgba(45,212,232,0.7); } }
+  @keyframes bombGlow { 0%,100% { box-shadow: 0 0 0 rgba(232,56,79,0); } 50% { box-shadow: 0 0 14px rgba(232,56,79,0.6); } }
+  @keyframes coinFlip3d { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(1800deg); } }
+  @keyframes ballDrop { 0% { transform: scale(1); } 50% { transform: scale(1.25); } 100% { transform: scale(1); } }
+  @keyframes bucketWin { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
   /* ---- Mines ---- */
   .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 18px; }
@@ -152,9 +192,13 @@
     font-size: 1.4rem; cursor: pointer; transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease;
   }
   .tile:active { transform: scale(0.94); }
-  .tile.gem { background: var(--cyan-dim); border-color: var(--cyan); }
-  .tile.bomb { background: var(--red-dim); border-color: var(--red); }
+  .tile.gem { background: var(--cyan-dim); border-color: var(--cyan); animation: tileGlow 0.6s ease; }
+  .tile.bomb { background: var(--red-dim); border-color: var(--red); animation: bombGlow 0.6s ease; }
+  .tile.bomb-reveal { background: var(--bg-tile); border-color: var(--red); opacity: 0.55; }
+  .tile.gem-reveal { background: var(--bg-tile); border-color: var(--cyan); opacity: 0.55; }
   .tile.disabled { pointer-events: none; }
+  .tile.pop-in { animation: tilePop 0.3s ease; }
+  @keyframes tilePop { 0% { transform: scale(0.6); opacity: 0.4; } 100% { transform: scale(1); opacity: 1; } }
 
   /* ---- Dice ---- */
   .dice-track {
@@ -166,12 +210,14 @@
     border-radius: 2px; transform: translateX(-2px);
   }
   .dice-result-badge {
-    position: absolute; top: -46px; transform: translateX(-50%);
+    position: absolute; top: -46px; transform: translateX(-50%) scale(0.6);
     background: var(--bg-tile); border: 1px solid var(--line); border-radius: 8px;
     padding: 4px 10px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.85rem;
-    opacity: 0; transition: opacity 0.2s ease;
+    opacity: 0; transition: opacity 0.2s ease, transform 0.2s ease;
   }
-  .dice-result-badge.show { opacity: 1; }
+  .dice-result-badge.show { opacity: 1; transform: translateX(-50%) scale(1); }
+  .dice-result-badge.win { border-color: var(--cyan); color: var(--cyan); }
+  .dice-result-badge.lose { border-color: var(--red); color: var(--red); }
   input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 4px; background: var(--bg-tile); margin: 10px 0; }
   input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--cyan); cursor: pointer; border: 3px solid var(--bg); }
   .toggle-row { display: flex; gap: 8px; margin-bottom: 14px; }
@@ -182,16 +228,16 @@
   .toggle-row button.active { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); }
 
   /* ---- Flip ---- */
-  .flip-coin-wrap { display: flex; justify-content: center; margin: 30px 0; }
+  .flip-coin-wrap { display: flex; justify-content: center; margin: 30px 0; perspective: 600px; }
   .flip-coin {
     width: 120px; height: 120px; border-radius: 50%;
     background: linear-gradient(135deg, var(--gold), #b9860f);
     display: flex; align-items: center; justify-content: center;
     font-size: 2.4rem; font-weight: 800; color: #241a02;
-    transition: transform 0.6s cubic-bezier(.2,.8,.2,1);
+    transition: box-shadow 0.3s ease;
   }
-  .flip-coin.spinning { animation: spin 0.6s linear; }
-  @keyframes spin { from { transform: rotateY(0deg); } to { transform: rotateY(1440deg); } }
+  .flip-coin.spinning { animation: coinFlip3d 0.9s cubic-bezier(.3,.1,.3,1); }
+  .flip-coin.win-glow { box-shadow: 0 0 30px rgba(240,185,61,0.8); }
   .side-pick { display: flex; gap: 10px; margin-bottom: 14px; }
   .side-pick button {
     flex: 1; background: var(--bg-raised); border: 1px solid var(--line); color: var(--ink-dim);
@@ -205,27 +251,31 @@
     aspect-ratio: 1; background: var(--bg-tile); border: 1px solid var(--line);
     border-radius: 8px; display: flex; align-items: center; justify-content: center;
     font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: 'JetBrains Mono', monospace;
+    transition: transform 0.15s ease;
   }
   .keno-tile.picked { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
-  .keno-tile.hit { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); }
+  .keno-tile.hit { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); animation: tileGlow 0.6s ease; }
   .keno-tile.miss { opacity: 0.35; }
+  .keno-tile.drawing { animation: tilePop 0.3s ease; }
   .keno-info { font-size: 0.78rem; color: var(--ink-dim); margin-bottom: 12px; text-align: center; }
 
   /* ---- Plinko ---- */
   .plinko-board { position: relative; background: var(--bg-raised); border: 1px solid var(--line); border-radius: 14px; padding: 16px 6px 6px 6px; margin-bottom: 14px; overflow: hidden; }
   .peg-row { display: flex; justify-content: center; gap: 14px; margin-bottom: 14px; }
-  .peg { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-dim); opacity: 0.5; }
+  .peg { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-dim); opacity: 0.5; transition: background 0.15s ease, opacity 0.15s ease, transform 0.15s ease; }
+  .peg.hit { background: var(--cyan); opacity: 1; transform: scale(1.6); }
   .plinko-ball {
     position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--cyan);
-    box-shadow: 0 0 8px var(--cyan); transition: left 0.25s ease, top 0.25s ease; top: 10px; left: 50%;
+    box-shadow: 0 0 8px var(--cyan); transition: left 0.16s cubic-bezier(.4,.1,.6,.9), top 0.16s cubic-bezier(.4,.1,.6,.9); top: 10px; left: 50%;
   }
+  .plinko-ball.landed { animation: ballDrop 0.35s ease; }
   .bucket-row { display: flex; gap: 4px; margin-top: 6px; }
   .bucket {
     flex: 1; text-align: center; padding: 8px 2px; border-radius: 6px;
     font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.68rem;
-    background: var(--bg-tile);
+    background: var(--bg-tile); transition: transform 0.2s ease;
   }
-  .bucket.hit { outline: 2px solid var(--cyan); }
+  .bucket.hit { outline: 2px solid var(--cyan); animation: bucketWin 0.4s ease; }
   .risk-row { display: flex; gap: 8px; margin-bottom: 14px; }
   .risk-row button {
     flex: 1; background: var(--bg-raised); border: 1px solid var(--line); color: var(--ink-dim);
@@ -236,9 +286,12 @@
 </head>
 <body>
 
+<div class="flash-layer" id="flashLayer"></div>
+<div class="particle-layer" id="particleLayer"></div>
+
 <header>
   <div class="brand"><span class="icon">◆</span> Blunt Roll</div>
-  <div class="balance-pill"><span class="coin">●</span><span id="balanceDisplay">--</span></div>
+  <div class="balance-pill" id="balancePill"><span class="coin">●</span><span id="balanceDisplay">--</span></div>
 </header>
 
 <div class="tabstrip" id="tabstrip">
@@ -424,7 +477,67 @@
   const username = tgUser?.username || tgUser?.first_name || 'guest'
 
   let balance = 0
+  let displayedBalance = 0
   let streak = 0
+
+  // ---------------- Feel: haptics, number count-up, confetti, flashes ----------------
+  function hapticSuccess() { try { tg?.HapticFeedback?.notificationOccurred('success') } catch (e) {} }
+  function hapticError() { try { tg?.HapticFeedback?.notificationOccurred('error') } catch (e) {} }
+  function hapticTap() { try { tg?.HapticFeedback?.impactOccurred('light') } catch (e) {} }
+
+  function animateNumber(el, from, to, dur = 550) {
+    const start = performance.now()
+    function step(now) {
+      const p = Math.min(1, (now - start) / dur)
+      const eased = 1 - Math.pow(1 - p, 3)
+      el.textContent = Math.floor(from + (to - from) * eased)
+      if (p < 1) requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+  }
+
+  function flash(type) {
+    const el = document.getElementById('flashLayer')
+    el.className = 'flash-layer ' + type
+    void el.offsetWidth
+    el.className = 'flash-layer ' + type
+    setTimeout(() => { el.className = 'flash-layer' }, 900)
+  }
+
+  function shakeScreen() {
+    document.body.classList.remove('shake')
+    void document.body.offsetWidth
+    document.body.classList.add('shake')
+    setTimeout(() => document.body.classList.remove('shake'), 420)
+  }
+
+  function burstConfetti(count = 18) {
+    const layer = document.getElementById('particleLayer')
+    const emojis = ['💎','✨','🪙','⭐']
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div')
+      p.className = 'particle'
+      p.textContent = emojis[Math.floor(Math.random() * emojis.length)]
+      const angle = Math.random() * Math.PI * 2
+      const dist = 120 + Math.random() * 160
+      p.style.setProperty('--dx', Math.cos(angle) * dist + 'px')
+      p.style.setProperty('--dy', Math.sin(angle) * dist + 'px')
+      p.style.setProperty('--rot', (Math.random() * 360 - 180) + 'deg')
+      layer.appendChild(p)
+      setTimeout(() => p.remove(), 1050)
+    }
+  }
+
+  function celebrateWin(mult) {
+    hapticSuccess()
+    flash(mult >= 3 ? 'big' : 'win')
+    if (mult >= 1.8) burstConfetti(mult >= 3 ? 28 : 16)
+  }
+  function reactLoss() {
+    hapticError()
+    flash('lose')
+    shakeScreen()
+  }
 
   async function loadBalance() {
     const { data, error } = await supabase.from('balances').select('coins,streak').eq('user_id', userId).maybeSingle()
@@ -438,24 +551,35 @@
       balance = data.coins
       streak = data.streak || 0
     }
-    renderBalance()
+    displayedBalance = balance
+    renderBalance(true)
   }
 
   async function saveBalance() {
     await supabase.from('balances').update({ coins: balance }).eq('user_id', userId)
   }
 
-  function renderBalance() {
-    document.getElementById('balanceDisplay').textContent = Math.floor(balance)
-    document.getElementById('homeBalance').textContent = Math.floor(balance)
+  function renderBalance(instant) {
+    const balDisplay = document.getElementById('balanceDisplay')
+    const homeDisplay = document.getElementById('homeBalance')
+    if (instant) {
+      balDisplay.textContent = Math.floor(balance)
+      homeDisplay.textContent = Math.floor(balance)
+    } else {
+      animateNumber(balDisplay, displayedBalance, balance)
+      animateNumber(homeDisplay, displayedBalance, balance)
+      const pill = document.getElementById('balancePill')
+      pill.classList.remove('bump'); void pill.offsetWidth; pill.classList.add('bump')
+    }
+    displayedBalance = balance
     document.getElementById('homeStreak').textContent = streak > 0 ? `🔥 ${streak}-day streak` : ''
   }
 
-  function showToast(msg, type) {
+  function showToast(msg, type, big) {
     const toastEl = document.getElementById('toast')
     toastEl.textContent = msg
-    toastEl.className = `toast show ${type}`
-    setTimeout(() => { toastEl.className = 'toast' }, 1800)
+    toastEl.className = `toast show ${type}${big ? ' big' : ''}`
+    setTimeout(() => { toastEl.className = 'toast' }, 1900)
   }
 
   function adjustBet(inputEl, mult) { inputEl.value = Math.max(1, Math.floor((parseFloat(inputEl.value) || 0) * mult)) }
@@ -463,6 +587,7 @@
 
   document.querySelectorAll('.bet-quick button').forEach(btn => {
     btn.addEventListener('click', () => {
+      hapticTap()
       const target = btn.dataset.target
       const input = document.getElementById(target + 'BetInput')
       if (!input) return
@@ -473,10 +598,10 @@
 
   // ---------------- Tabs ----------------
   document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab))
+    btn.addEventListener('click', () => { hapticTap(); switchTab(btn.dataset.tab) })
   })
   document.querySelectorAll('.game-shortcut').forEach(el => {
-    el.addEventListener('click', () => switchTab(el.dataset.goto))
+    el.addEventListener('click', () => { hapticTap(); switchTab(el.dataset.goto) })
   })
   function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab))
@@ -516,6 +641,7 @@
     minesBet = parseFloat(minesBetInputEl.value) || 0
     if (minesBet <= 0) { showToast('Enter a valid bet', 'lose'); return }
     if (minesBet > balance) { showToast('Not enough coins', 'lose'); return }
+    hapticTap()
     balance -= minesBet; renderBalance(); saveBalance()
     minesActive = true; minesRevealed = 0; minesBombs = new Set()
     while (minesBombs.size < minesCount) minesBombs.add(Math.floor(Math.random() * GRID_SIZE))
@@ -523,17 +649,30 @@
     minesActionBtn.textContent = 'Cashout'; minesActionBtn.className = 'action-btn cashout'
     minesBetInputEl.disabled = true
   }
+  function revealAllMines(hitBombIndex) {
+    document.querySelectorAll('#minesGrid .tile').forEach(t => {
+      const i = parseInt(t.dataset.index)
+      t.classList.add('disabled')
+      if (t.classList.contains('gem') || t.classList.contains('bomb')) return
+      if (minesBombs.has(i)) {
+        t.classList.add(i === hitBombIndex ? 'bomb' : 'bomb-reveal')
+        if (i === hitBombIndex) t.textContent = '💣'
+        else t.textContent = '💣'
+      } else {
+        t.classList.add('gem-reveal')
+        t.textContent = '💎'
+      }
+    })
+  }
   function onMineTileClick(index, tileEl) {
     if (!minesActive || tileEl.classList.contains('gem') || tileEl.classList.contains('bomb')) return
+    hapticTap()
     if (minesBombs.has(index)) {
-      document.querySelectorAll('#minesGrid .tile').forEach(t => {
-        const i = parseInt(t.dataset.index)
-        if (minesBombs.has(i)) { t.classList.add('bomb'); t.textContent = '💣' }
-        t.classList.add('disabled')
-      })
-      tileEl.classList.add('bomb'); endMines(false)
+      tileEl.classList.add('bomb'); tileEl.textContent = '💣'
+      revealAllMines(index)
+      endMines(false)
     } else {
-      tileEl.classList.add('gem'); tileEl.textContent = '💎'
+      tileEl.classList.add('gem', 'pop-in'); tileEl.textContent = '💎'
       minesRevealed++; updateMinesStats()
       if (minesRevealed === GRID_SIZE - minesCount) cashoutMines()
     }
@@ -542,15 +681,17 @@
     if (!minesActive || minesRevealed === 0) return
     const payout = Math.floor(minesBet * minesMult)
     balance += payout; renderBalance(); saveBalance()
-    showToast(`+${payout} coins`, 'win'); endMines(true)
+    showToast(`+${payout} coins`, 'win', minesMult >= 3)
+    celebrateWin(minesMult)
+    revealAllMines(null)
+    endMines(true)
   }
   function endMines(won) {
     minesActive = false
-    document.querySelectorAll('#minesGrid .tile').forEach(t => t.classList.add('disabled'))
-    if (!won) showToast(`Lost ${minesBet} coins`, 'lose')
+    if (!won) { showToast(`Lost ${minesBet} coins`, 'lose'); reactLoss() }
     minesActionBtn.textContent = 'Start'; minesActionBtn.className = 'action-btn start'
     minesBetInputEl.disabled = false
-    setTimeout(buildMinesGrid, 900)
+    setTimeout(buildMinesGrid, 1400)
   }
   minesActionBtn.addEventListener('click', () => { minesActive ? cashoutMines() : startMines() })
   document.getElementById('minesUp').addEventListener('click', () => { if (!minesActive) { minesCount = Math.min(24, minesCount + 1); minesValEl.textContent = minesCount } })
@@ -590,19 +731,25 @@
     const chance = diceMode === 'under' ? target : (100 - target)
     const mult = (100 / chance) * HOUSE_EDGE
     balance -= bet; renderBalance()
+    diceActionBtn.disabled = true
+    diceResultBadge.classList.remove('show', 'win', 'lose')
+    await new Promise(r => setTimeout(r, 220))
     const roll = Math.floor(Math.random() * 100) + 1
     const won = diceMode === 'under' ? roll < target : roll > target
     diceResultBadge.textContent = roll
-    diceResultBadge.style.left = ((roll) + '%')
-    diceResultBadge.classList.add('show')
-    setTimeout(() => diceResultBadge.classList.remove('show'), 1500)
+    diceResultBadge.style.left = (roll + '%')
+    diceResultBadge.classList.add('show', won ? 'win' : 'lose')
+    setTimeout(() => diceResultBadge.classList.remove('show'), 1600)
     if (won) {
       const payout = Math.floor(bet * mult)
-      balance += payout; showToast(`Rolled ${roll} — +${payout} coins`, 'win')
+      balance += payout; showToast(`Rolled ${roll} — +${payout} coins`, 'win', mult >= 3)
+      celebrateWin(mult)
     } else {
       showToast(`Rolled ${roll} — lost ${bet} coins`, 'lose')
+      reactLoss()
     }
     renderBalance(); await saveBalance()
+    diceActionBtn.disabled = false
   })
   updateDiceStats()
 
@@ -614,7 +761,6 @@
   const flipPayoutDisplay = document.getElementById('flipPayoutDisplay')
   const flipActionBtn = document.getElementById('flipActionBtn')
   let flipSide = 'heads'
-  const FLIP_MULT = 1.94 * HOUSE_EDGE / HOUSE_EDGE // ~1.94 already includes edge margin vs true 2x
   function updateFlipStats() { flipPayoutDisplay.textContent = Math.floor((parseFloat(flipBetInput.value) || 0) * 1.94) }
   flipBetInput.addEventListener('input', updateFlipStats)
   flipHeadsBtn.addEventListener('click', () => { flipSide = 'heads'; flipHeadsBtn.classList.add('active'); flipTailsBtn.classList.remove('active') })
@@ -624,6 +770,7 @@
     if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
     if (bet > balance) { showToast('Not enough coins', 'lose'); return }
     balance -= bet; renderBalance()
+    flipCoin.classList.remove('win-glow')
     flipCoin.classList.add('spinning')
     flipActionBtn.disabled = true
     const result = Math.random() < 0.5 ? 'heads' : 'tails'
@@ -634,12 +781,15 @@
       if (won) {
         const payout = Math.floor(bet * 1.94)
         balance += payout; showToast(`${result.toUpperCase()} — +${payout} coins`, 'win')
+        flipCoin.classList.add('win-glow')
+        celebrateWin(1.94)
       } else {
         showToast(`${result.toUpperCase()} — lost ${bet} coins`, 'lose')
+        reactLoss()
       }
       renderBalance(); await saveBalance()
       flipActionBtn.disabled = false
-    }, 600)
+    }, 900)
   })
   updateFlipStats()
 
@@ -663,6 +813,7 @@
       const t = document.createElement('div')
       t.className = 'keno-tile'; t.textContent = i; t.dataset.n = i
       t.addEventListener('click', () => {
+        hapticTap()
         if (kenoPicked.has(i)) { kenoPicked.delete(i); t.classList.remove('picked') }
         else if (kenoPicked.size < KENO_MAX_PICKS) { kenoPicked.add(i); t.classList.add('picked') }
         kenoPicksDisplay.textContent = kenoPicked.size
@@ -676,33 +827,44 @@
     if (bet > balance) { showToast('Not enough coins', 'lose'); return }
     if (kenoPicked.size === 0) { showToast('Pick at least 1 number', 'lose'); return }
     balance -= bet; renderBalance()
+    kenoActionBtn.disabled = true
     const drawn = new Set()
     while (drawn.size < KENO_DRAW) drawn.add(Math.floor(Math.random() * KENO_N) + 1)
+
+    // draw the balls one at a time so it feels like a real draw
+    const drawnArr = [...drawn]
+    for (let i = 0; i < drawnArr.length; i++) {
+      const n = drawnArr[i]
+      const tile = kenoGridEl.querySelector(`.keno-tile[data-n="${n}"]`)
+      await new Promise(r => setTimeout(r, 90))
+      tile.classList.add('drawing')
+      tile.classList.add(kenoPicked.has(n) ? 'hit' : 'miss')
+      if (kenoPicked.has(n)) hapticTap()
+    }
+
     let matches = 0
-    document.querySelectorAll('.keno-tile').forEach(t => {
-      const n = parseInt(t.dataset.n)
-      t.classList.remove('hit', 'miss')
-      if (drawn.has(n)) {
-        t.classList.add('hit')
-        if (kenoPicked.has(n)) matches++
-      } else if (kenoPicked.has(n)) {
-        t.classList.add('miss')
-      }
-    })
+    drawnArr.forEach(n => { if (kenoPicked.has(n)) matches++ })
+
     const table = KENO_PAYTABLE[kenoPicked.size] || {}
     const mult = table[matches] || 0
     const payout = Math.floor(bet * mult)
     kenoMatchesDisplay.textContent = matches
     kenoPayoutDisplay.textContent = payout
-    if (payout > 0) { balance += payout; showToast(`${matches} matches — +${payout} coins`, 'win') }
-    else { showToast(`${matches} matches — lost ${bet} coins`, 'lose') }
+    if (payout > 0) {
+      balance += payout; showToast(`${matches} matches — +${payout} coins`, 'win', mult >= 20)
+      celebrateWin(mult)
+    } else {
+      showToast(`${matches} matches — lost ${bet} coins`, 'lose')
+      reactLoss()
+    }
     renderBalance(); await saveBalance()
+    kenoActionBtn.disabled = false
     setTimeout(() => {
       kenoPicked = new Set()
       buildKenoGrid()
       kenoPicksDisplay.textContent = 0
       kenoMatchesDisplay.textContent = '--'
-    }, 2200)
+    }, 2400)
   })
   buildKenoGrid()
 
@@ -734,7 +896,7 @@
   function buildPlinkoBoard() {
     plinkoPegsEl.innerHTML = ''
     for (let r = 2; r <= PLINKO_ROWS; r++) {
-      const row = document.createElement('div'); row.className = 'peg-row'
+      const row = document.createElement('div'); row.className = 'peg-row'; row.dataset.row = r
       for (let i = 0; i <= r; i++) { const p = document.createElement('div'); p.className = 'peg'; row.appendChild(p) }
       plinkoPegsEl.appendChild(row)
     }
@@ -747,11 +909,57 @@
   }
   document.querySelectorAll('.risk-row button').forEach(btn => {
     btn.addEventListener('click', () => {
+      hapticTap()
       document.querySelectorAll('.risk-row button').forEach(b => b.classList.remove('active'))
       btn.classList.add('active'); plinkoRisk = btn.dataset.risk
       buildPlinkoBoard()
     })
   })
+
+  async function dropPlinkoBall(targetBucket) {
+    // Walk the ball down row by row, biasing its left/right jitter so it
+    // actually ends up over the winning bucket — this is the visible "fall".
+    const rows = plinkoPegsEl.querySelectorAll('.peg-row')
+    const boardRect = plinkoPegsEl.getBoundingClientRect()
+    const boardWidth = boardRect.width || 300
+    const finalLeftPct = (targetBucket / PLINKO_ROWS) * 100
+
+    plinkoBallEl.style.display = 'block'
+    plinkoBallEl.classList.remove('landed')
+    plinkoBallEl.style.top = '4px'
+    plinkoBallEl.style.left = '50%'
+    await new Promise(r => setTimeout(r, 40))
+
+    let leftPct = 50
+    for (let step = 0; step < rows.length; step++) {
+      const row = rows[step]
+      const progress = (step + 1) / rows.length
+      // ease left position toward the final bucket while still wobbling
+      const wobble = (Math.random() - 0.5) * (12 * (1 - progress))
+      leftPct = 50 + (finalLeftPct - 50) * progress + wobble
+      leftPct = Math.max(4, Math.min(96, leftPct))
+      const rowTop = row.offsetTop + row.offsetHeight / 2
+      plinkoBallEl.style.top = rowTop + 'px'
+      plinkoBallEl.style.left = leftPct + '%'
+
+      // light up the peg nearest this horizontal position for a tactile feel
+      const pegs = row.querySelectorAll('.peg')
+      if (pegs.length) {
+        const pegIndex = Math.min(pegs.length - 1, Math.round((leftPct / 100) * (pegs.length - 1)))
+        pegs[pegIndex].classList.add('hit')
+        setTimeout(() => pegs[pegIndex].classList.remove('hit'), 300)
+        hapticTap()
+      }
+      await new Promise(r => setTimeout(r, 130))
+    }
+
+    // final settle into the bucket
+    const bucketRow = plinkoBucketsEl
+    plinkoBallEl.style.top = (bucketRow.offsetTop + 6) + 'px'
+    plinkoBallEl.style.left = finalLeftPct + '%'
+    plinkoBallEl.classList.add('landed')
+  }
+
   plinkoActionBtn.addEventListener('click', async () => {
     const bet = parseFloat(plinkoBetInput.value) || 0
     if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
@@ -762,25 +970,22 @@
     for (let i = 0; i < PLINKO_ROWS; i++) if (Math.random() < 0.5) bucket++
     const mults = plinkoMultipliers()
     const mult = mults[bucket]
-    plinkoBallEl.style.display = 'block'
-    plinkoBallEl.style.top = '10px'
-    plinkoBallEl.style.left = '50%'
-    const boardWidth = plinkoPegsEl.offsetWidth || 300
-    const targetLeftPct = (bucket / PLINKO_ROWS) * 100
-    setTimeout(() => {
-      plinkoBallEl.style.top = '210px'
-      plinkoBallEl.style.left = targetLeftPct + '%'
-    }, 50)
-    setTimeout(async () => {
-      document.querySelectorAll('.bucket').forEach((b, i) => b.classList.toggle('hit', i === bucket))
-      const payout = Math.floor(bet * mult)
-      balance += payout
-      if (mult >= 1) showToast(`${mult.toFixed(2)}× — +${payout} coins`, 'win')
-      else showToast(`${mult.toFixed(2)}× — kept ${payout} coins`, 'lose')
-      renderBalance(); await saveBalance()
-      plinkoActionBtn.disabled = false
-      setTimeout(() => { plinkoBallEl.style.display = 'none'; document.querySelectorAll('.bucket').forEach(b => b.classList.remove('hit')) }, 1200)
-    }, 500)
+
+    await dropPlinkoBall(bucket)
+
+    document.querySelectorAll('.bucket').forEach((b, i) => b.classList.toggle('hit', i === bucket))
+    const payout = Math.floor(bet * mult)
+    balance += payout
+    if (mult >= 1) {
+      showToast(`${mult.toFixed(2)}× — +${payout} coins`, 'win', mult >= 3)
+      celebrateWin(mult)
+    } else {
+      showToast(`${mult.toFixed(2)}× — kept ${payout} coins`, 'lose')
+      reactLoss()
+    }
+    renderBalance(); await saveBalance()
+    plinkoActionBtn.disabled = false
+    setTimeout(() => { plinkoBallEl.style.display = 'none'; document.querySelectorAll('.bucket').forEach(b => b.classList.remove('hit')) }, 1200)
   })
   buildPlinkoBoard()
 
