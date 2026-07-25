@@ -423,10 +423,9 @@
   .bj-card-front .bj-suit { font-size: 1.3rem; }
   @keyframes bjDealIn { to { opacity: 1; transform: translateY(0) scale(1) rotate(var(--r)); } }
   @keyframes bjFlip {
-    0%   { transform: rotateY(0deg)  translateY(0)   scale(1); }
-    40%  { transform: rotateY(90deg) translateY(-7px) scale(1.06); }
-    60%  { transform: rotateY(90deg) translateY(-7px) scale(1.06); }
-    100% { transform: rotateY(180deg) translateY(0)  scale(1); }
+    0%   { transform: rotateY(0deg)  scale(1); }
+    50%  { transform: rotateY(90deg) scale(1.05); }
+    100% { transform: rotateY(180deg) scale(1); }
   }
   @keyframes bjPulseWin { 0%,100% { box-shadow: 0 0 0 rgba(0,230,118,0); } 50% { box-shadow: 0 0 18px rgba(0,230,118,0.5); } }
   @keyframes bjPulseLose { 0%,100% { box-shadow: 0 0 0 rgba(232,56,79,0); } 50% { box-shadow: 0 0 18px rgba(232,56,79,0.45); } }
@@ -1147,6 +1146,8 @@
   // ================= PLINKO =================
   const PLINKO_ROWS = 10
   let plinkoRisk = 'medium'
+  let plinkoBusy = false
+  let plinkoCleanupTimer = null
   const plinkoPegsEl = document.getElementById('plinkoPegs')
   const plinkoBucketsEl = document.getElementById('plinkoBuckets')
   const plinkoBallEl = document.getElementById('plinkoBall')
@@ -1237,9 +1238,12 @@
   }
 
   plinkoActionBtn.addEventListener('click', async () => {
+    if (plinkoBusy) return
     const bet = parseFloat(plinkoBetInput.value) || 0
     if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
     if (bet > balance) { showToast('Not enough coins', 'lose'); return }
+    plinkoBusy = true
+    if (plinkoCleanupTimer) { clearTimeout(plinkoCleanupTimer); plinkoCleanupTimer = null }
     balance -= bet; renderBalance()
     plinkoActionBtn.disabled = true
     let bucket = 0
@@ -1260,8 +1264,13 @@
       reactLoss()
     }
     renderBalance(); await saveBalance()
-    plinkoActionBtn.disabled = false
-    setTimeout(() => { plinkoBallEl.style.display = 'none'; document.querySelectorAll('.bucket').forEach(b => b.classList.remove('hit')) }, 1200)
+    plinkoCleanupTimer = setTimeout(() => {
+      plinkoBallEl.style.display = 'none'
+      document.querySelectorAll('.bucket').forEach(b => b.classList.remove('hit'))
+      plinkoActionBtn.disabled = false
+      plinkoBusy = false
+      plinkoCleanupTimer = null
+    }, 1200)
   })
   buildPlinkoBoard()
 
@@ -1284,7 +1293,7 @@
   const bjDoubleBtn = document.getElementById('bjDoubleBtn')
   const bjBetRowEl = document.getElementById('bjBetRow')
 
-  let bjDeck = [], bjPlayerHand = [], bjDealerHand = [], bjBet = 0, bjActive = false, bjResolving = false
+  let bjDeck = [], bjPlayerHand = [], bjDealerHand = [], bjBet = 0, bjActive = false, bjBusy = false
 
   function bjBuildDeck() {
     const deck = []
@@ -1316,8 +1325,9 @@
         </div>
       </div>`
     container.appendChild(el)
-    // let the card land first, then flip it — flipping mid-flight looks rushed
-    if (!faceDown) setTimeout(() => el.classList.add('flipped'), 170)
+    // wait for the deal-in animation to actually finish before flipping —
+    // flipping while it's still landing was what caused the visible flicker
+    if (!faceDown) el.addEventListener('animationend', () => el.classList.add('flipped'), { once: true })
     return el
   }
 
@@ -1338,7 +1348,7 @@
     hand.push(card)
     bjRenderCard(card, faceDown, container)
     hapticTap()
-    await sleep(340)
+    await sleep(420)
     return card
   }
 
@@ -1350,18 +1360,19 @@
   }
 
   async function bjStart() {
-    if (bjActive || bjResolving) return
+    if (bjBusy) return
     bjBet = parseFloat(bjBetInput.value) || 0
     if (bjBet <= 0) { showToast('Enter a valid bet', 'lose'); return }
     if (bjBet > balance) { showToast('Not enough coins', 'lose'); return }
     hapticTap()
+    bjBusy = true
     balance -= bjBet; renderBalance(); saveBalance()
 
     bjResultEl.className = 'bj-result'
     bjDealerCardsEl.innerHTML = ''; bjPlayerCardsEl.innerHTML = ''
     bjDeck = bjBuildDeck()
     bjPlayerHand = []; bjDealerHand = []
-    bjActive = true; bjResolving = true
+    bjActive = true
     bjSetInPlay(true)
     bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjDoubleBtn.disabled = true
 
@@ -1373,44 +1384,56 @@
 
     if (bjIsBlackjack(bjPlayerHand)) {
       await sleep(300)
-      await bjResolve(true)
+      await bjResolve(true) // bjResolve clears bjBusy once the round fully settles
       return
     }
 
-    bjResolving = false
     bjHitBtn.disabled = false
     bjStandBtn.disabled = false
     bjDoubleBtn.disabled = balance < bjBet
+    bjBusy = false // now waiting on the player's decision
   }
 
   async function bjHit() {
-    if (!bjActive || bjResolving) return
-    bjDoubleBtn.disabled = true
+    if (!bjActive || bjBusy) return
+    bjBusy = true
+    bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjDoubleBtn.disabled = true
     await bjDealCard(bjPlayerHand, bjPlayerCardsEl, false)
     const score = bjScore(bjPlayerHand)
     bjUpdateScores(false)
-    if (score > 21) { await bjResolve(false, true) }
-    else if (score === 21) { await bjStand() }
+    if (score > 21) { await bjResolve(false, true); return }
+    if (score === 21) { await bjStandFlow(); return }
+    bjHitBtn.disabled = false
+    bjStandBtn.disabled = false
+    bjBusy = false // double is never re-enabled after the first hit — only valid on 2 cards
   }
 
   async function bjDouble() {
-    if (!bjActive || bjResolving || balance < bjBet) return
+    if (!bjActive || bjBusy || balance < bjBet) return
+    bjBusy = true
     bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjDoubleBtn.disabled = true
     balance -= bjBet; bjBet *= 2; renderBalance(); saveBalance()
     await bjDealCard(bjPlayerHand, bjPlayerCardsEl, false)
     const score = bjScore(bjPlayerHand)
     bjUpdateScores(false)
     if (score > 21) await bjResolve(false, true)
-    else await bjStand()
+    else await bjStandFlow()
   }
 
-  async function bjStand() {
-    if (!bjActive || bjResolving) return
+  // Button handler — guarded, only fires when it's the player's turn to act.
+  function bjStand() {
+    if (!bjActive || bjBusy) return
+    bjBusy = true
+    bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjDoubleBtn.disabled = true
+    bjStandFlow()
+  }
+  // Internal flow, reused by Hit (auto-stand at 21) and Double — caller already
+  // holds the busy lock, so this never re-checks it.
+  async function bjStandFlow() {
     await bjResolve(false)
   }
 
   async function bjResolve(playerBlackjack, playerBusted) {
-    bjResolving = true
     bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjDoubleBtn.disabled = true
 
     // reveal hidden dealer card
@@ -1473,7 +1496,7 @@
     bjSetInPlay(false)
     setTimeout(() => {
       bjResultEl.className = 'bj-result'
-      bjResolving = false
+      bjBusy = false
     }, 2200)
   }
 
