@@ -162,8 +162,8 @@
   .game-shortcut[data-goto="plinko"] { --tile-glow: rgba(255,201,61,0.2); }
   .game-shortcut[data-goto="dice"] { --tile-glow: rgba(255,71,87,0.18); }
   .game-shortcut[data-goto="flip"] { --tile-glow: rgba(255,201,61,0.22); }
-  .game-shortcut[data-goto="slots"] { --tile-glow: rgba(0,230,118,0.24); }
-  .game-shortcut[data-goto="crash"] { --tile-glow: rgba(255,71,87,0.24); }
+  .game-shortcut[data-goto="crash"] { --tile-glow: rgba(0,230,118,0.24); }
+  .game-shortcut[data-goto="slots"] { --tile-glow: rgba(255,71,87,0.2); }
 
   /* ---- Shared game controls ---- */
   .controls-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
@@ -330,15 +330,18 @@
 
   /* ---- Plinko ---- */
   .plinko-board { position: relative; background: var(--bg-raised); border: 1px solid var(--line); border-radius: 14px; padding: 16px 6px 6px 6px; margin-bottom: 14px; overflow: hidden; }
-  .peg-row { display: flex; justify-content: center; gap: 14px; margin-bottom: 14px; position: relative; }
+  .peg-row { display: flex; justify-content: center; gap: 14px; margin-bottom: 14px; }
   .peg { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-dim); opacity: 0.5; transition: background 0.15s ease, opacity 0.15s ease, transform 0.15s ease; }
   .peg.hit { background: var(--cyan); opacity: 1; transform: scale(1.6); }
   .plinko-ball {
     position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--cyan);
-    box-shadow: 0 0 8px var(--cyan); top: 10px; left: 50%; margin-left: -7px;
-    transition: left 0.13s linear, top 0.13s linear;
+    box-shadow: 0 0 8px var(--cyan); top: 10px; left: 50%;
+    transition: left 0.15s cubic-bezier(.3,1.4,.5,1), top 0.15s cubic-bezier(.3,.7,.4,1), opacity 0.3s ease;
+    animation: plinkoBallIn 0.15s ease;
   }
   .plinko-ball.landed { animation: ballDrop 0.35s ease; }
+  .plinko-ball.removing { opacity: 0; }
+  @keyframes plinkoBallIn { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
   .bucket-row { display: flex; gap: 4px; margin-top: 6px; }
   .bucket {
     flex: 1; text-align: center; padding: 8px 2px; border-radius: 6px;
@@ -456,62 +459,72 @@
   .bj-btn.double { border-color: var(--purple); color: var(--purple); }
   .bj-btn:disabled { opacity: 0.35; pointer-events: none; }
 
-  /* ---- Slots ---- */
-  .slots-machine {
-    background: linear-gradient(160deg, var(--bg-tile), var(--bg-raised));
-    border: 1px solid var(--line); border-radius: 18px; padding: 18px;
-    margin-bottom: 16px; position: relative; overflow: hidden;
-  }
-  .slots-machine::before {
-    content: ''; position: absolute; top: -30%; left: 50%; transform: translateX(-50%);
-    width: 220px; height: 140px; background: radial-gradient(circle, rgba(0,230,118,0.14), transparent 70%);
-  }
-  .slots-reels { display: flex; gap: 8px; position: relative; z-index: 1; }
-  .slot-reel {
-    flex: 1; height: 168px; overflow: hidden; background: var(--navy-deep);
-    border-radius: 12px; border: 1px solid var(--line); position: relative;
-    box-shadow: inset 0 8px 14px -8px rgba(0,0,0,0.7), inset 0 -8px 14px -8px rgba(0,0,0,0.7);
-  }
-  .slot-strip { display: flex; flex-direction: column; will-change: transform; }
-  .slot-cell {
-    height: 56px; display: flex; align-items: center; justify-content: center;
-    font-size: 2rem;
-  }
-  .slot-reel::after {
-    content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: 12px;
-    box-shadow: 0 0 0 2px rgba(255,255,255,0.02) inset;
-  }
-  .slot-payline { position: absolute; left: 0; right: 0; top: 56px; height: 56px; pointer-events: none; z-index: 2; border-top: 1px dashed rgba(255,201,61,0.35); border-bottom: 1px dashed rgba(255,201,61,0.35); }
-  .slots-machine.win-glow { animation: bjPulseWin 1s ease; }
-  .slot-cell.win-cell { animation: tileGlow 0.9s ease infinite; border-radius: 8px; }
-  .slots-paytable { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0; }
-  .slots-paytable .pt-item {
-    background: var(--bg-raised); border: 1px solid var(--line); border-radius: 8px;
-    padding: 6px 9px; font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; color: var(--ink-dim);
-    display: flex; align-items: center; gap: 5px;
-  }
-
   /* ---- Crash ---- */
-  .crash-stage {
-    background: radial-gradient(ellipse at 50% 100%, rgba(255,71,87,0.08), transparent 60%), var(--bg-raised);
-    border: 1px solid var(--line); border-radius: 18px; padding: 30px 16px;
-    margin-bottom: 16px; text-align: center; position: relative; overflow: hidden; min-height: 220px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  .crash-chart {
+    position: relative; background: radial-gradient(ellipse at 50% 100%, rgba(0,230,118,0.08), transparent 65%), var(--bg-raised);
+    border: 1px solid var(--line); border-radius: 16px; height: 210px; overflow: hidden; margin-bottom: 12px;
   }
-  .crash-mult { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 3.2rem; color: var(--cyan); transition: color 0.15s ease; }
-  .crash-mult.crashed { color: var(--red); }
-  .crash-mult.cashed { color: var(--gold); }
-  .crash-status { color: var(--ink-dim); font-size: 0.85rem; font-weight: 700; margin-top: 8px; min-height: 20px; }
-  .crash-rocket { font-size: 1.8rem; margin-bottom: 6px; transform: translateY(0) rotate(-45deg); transition: transform 0.1s linear; }
-  .crash-history { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
-  .crash-history .ch-item {
-    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 700;
-    padding: 4px 8px; border-radius: 100px; background: var(--bg-raised); border: 1px solid var(--line); color: var(--ink-dim);
+  .crash-chart svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .crash-rocket {
+    position: absolute; font-size: 1.3rem; transform: translate(-50%, -50%) rotate(0deg);
+    filter: drop-shadow(0 0 6px rgba(0,230,118,0.5)); transition: left 0.1s linear, top 0.1s linear; z-index: 2;
   }
-  .crash-history .ch-item.good { color: var(--cyan); border-color: rgba(0,230,118,0.3); }
-  .crash-history .ch-item.bad { color: var(--red); border-color: rgba(255,71,87,0.3); }
-  .crash-actions { display: flex; gap: 8px; }
-  .crash-actions .action-btn { flex: 1; }
+  .crash-mult {
+    position: absolute; top: 16px; left: 0; right: 0; text-align: center;
+    font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 2.2rem; color: var(--cyan);
+    text-shadow: 0 0 18px rgba(0,230,118,0.4); transition: color 0.2s ease, text-shadow 0.2s ease; z-index: 2;
+  }
+  .crash-mult.busted { color: var(--red); text-shadow: 0 0 18px rgba(255,71,87,0.5); }
+  .crash-mult.cashed { color: var(--gold); text-shadow: 0 0 18px rgba(255,201,61,0.5); }
+  .crash-status {
+    position: absolute; bottom: 12px; left: 0; right: 0; text-align: center;
+    color: var(--ink-dim); font-size: 0.8rem; font-weight: 700; z-index: 2;
+  }
+  .crash-history { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; }
+  .crash-history::-webkit-scrollbar { display: none; }
+  .crash-chip {
+    flex-shrink: 0; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.72rem;
+    padding: 5px 9px; border-radius: 100px; background: var(--bg-raised); border: 1px solid var(--line); color: var(--ink-dim);
+  }
+  .crash-chip.win { color: var(--cyan); border-color: rgba(0,230,118,0.3); }
+  .crash-chip.lose { color: var(--red); border-color: rgba(255,71,87,0.25); }
+  .crash-chart.glow-win { animation: bjPulseWin 1s ease; }
+  .crash-chart.glow-lose { animation: bjPulseLose 1s ease; }
+
+  /* ---- Slots ---- */
+  .slot-machine {
+    position: relative; display: flex; gap: 6px; justify-content: center;
+    background: linear-gradient(160deg, var(--bg-tile), var(--bg-raised));
+    border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 12px;
+  }
+  .slot-reel {
+    width: 78px; height: 192px; overflow: hidden; border-radius: 10px;
+    background: var(--bg); border: 1px solid var(--line);
+    box-shadow: inset 0 10px 14px -8px rgba(0,0,0,0.6), inset 0 -10px 14px -8px rgba(0,0,0,0.6);
+  }
+  .slot-strip { display: flex; flex-direction: column; will-change: transform; transition: filter 0.15s ease; }
+  .slot-strip.spin-blur { filter: blur(1.5px); }
+  .slot-sym { width: 78px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 2rem; flex-shrink: 0; }
+  .slot-payline {
+    position: absolute; top: 50%; left: 8px; right: 8px; height: 64px; transform: translateY(-50%);
+    border-top: 2px dashed rgba(255,201,61,0.4); border-bottom: 2px dashed rgba(255,201,61,0.4);
+    pointer-events: none; z-index: 3;
+  }
+  .slot-result {
+    text-align: center; font-weight: 800; font-size: 0.95rem; min-height: 22px; margin-bottom: 10px;
+    opacity: 0; transform: translateY(4px); transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .slot-result.show { opacity: 1; transform: translateY(0); }
+  .slot-result.win { color: var(--cyan); }
+  .slot-result.lose { color: var(--red); }
+  .slot-paytable {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; justify-content: center;
+  }
+  .slot-pt-item {
+    display: flex; align-items: center; gap: 5px; background: var(--bg-raised); border: 1px solid var(--line);
+    border-radius: 8px; padding: 5px 8px; font-size: 0.72rem; color: var(--ink-dim); font-weight: 700;
+  }
+  .slot-pt-item .sym { font-size: 0.95rem; }
 </style>
 </head>
 <body>
@@ -532,8 +545,8 @@
   <button class="tab-btn" data-tab="keno">#️⃣ Keno</button>
   <button class="tab-btn" data-tab="flip">🪙 Flip</button>
   <button class="tab-btn" data-tab="blackjack">🃏 Blackjack</button>
-  <button class="tab-btn" data-tab="slots">🎰 Slots</button>
   <button class="tab-btn" data-tab="crash">🚀 Crash</button>
+  <button class="tab-btn" data-tab="slots">🎰 Slots</button>
   <button class="tab-btn" data-tab="leaderboard">🏆 Leaderboard</button>
   <button class="tab-btn" data-tab="rewards">🎁 Rewards</button>
 </div>
@@ -564,14 +577,14 @@
     </div>
     <div class="section-label">Games</div>
     <div class="games-grid">
-      <div class="game-shortcut" data-goto="slots"><span class="g-tag">New</span><div class="g-icon">🎰</div><div class="g-name">Slots</div></div>
-      <div class="game-shortcut" data-goto="crash"><span class="g-tag">New</span><div class="g-icon">🚀</div><div class="g-name">Crash</div></div>
       <div class="game-shortcut" data-goto="blackjack"><div class="g-icon">♠️</div><div class="g-name">Blackjack</div></div>
       <div class="game-shortcut" data-goto="mines"><div class="g-icon">💎</div><div class="g-name">Mines</div></div>
       <div class="game-shortcut" data-goto="plinko"><div class="g-icon">🔺</div><div class="g-name">Plinko</div></div>
       <div class="game-shortcut" data-goto="dice"><div class="g-icon">🎲</div><div class="g-name">Dice</div></div>
       <div class="game-shortcut" data-goto="keno"><div class="g-icon">#️⃣</div><div class="g-name">Keno</div></div>
       <div class="game-shortcut" data-goto="flip"><div class="g-icon">🪙</div><div class="g-name">Flip</div></div>
+      <div class="game-shortcut" data-goto="crash"><span class="g-tag">New</span><div class="g-icon">🚀</div><div class="g-name">Crash</div></div>
+      <div class="game-shortcut" data-goto="slots"><span class="g-tag">New</span><div class="g-icon">🎰</div><div class="g-name">Slots</div></div>
     </div>
   </div>
 
@@ -623,7 +636,6 @@
     </div>
     <div class="plinko-board">
       <div id="plinkoPegs"></div>
-      <div id="plinkoBalls"></div>
       <div class="bucket-row" id="plinkoBuckets"></div>
     </div>
     <button class="action-btn start" id="plinkoActionBtn">Drop</button>
@@ -740,13 +752,47 @@
     </div>
   </div>
 
+  <!-- ===== CRASH ===== -->
+  <div class="panel" id="panel-crash">
+    <div class="crash-chart">
+      <svg id="crashSvg" viewBox="0 0 300 170" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="crashFillGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--cyan)" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="var(--cyan)" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <polygon id="crashFill" points="" fill="url(#crashFillGrad)"></polygon>
+        <polyline id="crashLine" points="" fill="none" stroke="var(--cyan)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+      </svg>
+      <div class="crash-rocket" id="crashRocket">🚀</div>
+      <div class="crash-mult" id="crashMultDisplay">1.00×</div>
+      <div class="crash-status" id="crashStatus">Place a bet to launch</div>
+    </div>
+    <div class="crash-history" id="crashHistory"></div>
+    <div class="bet-row">
+      <div style="flex:1;">
+        <div class="bet-label">Bet amount</div>
+        <input type="number" class="bet-input" id="crashBetInput" value="10" min="1">
+      </div>
+      <div class="bet-quick">
+        <button data-mult="0.5" data-target="crash">½</button>
+        <button data-mult="2" data-target="crash">2×</button>
+        <button data-max="1" data-target="crash">Max</button>
+      </div>
+    </div>
+    <button class="action-btn start" id="crashActionBtn">Place Bet</button>
+  </div>
+
   <!-- ===== SLOTS ===== -->
   <div class="panel" id="panel-slots">
-    <div class="slots-machine" id="slotsMachine">
-      <div class="slots-reels" id="slotsReels"></div>
+    <div class="slot-machine">
       <div class="slot-payline"></div>
+      <div class="slot-reel"><div class="slot-strip" id="slotStrip0"></div></div>
+      <div class="slot-reel"><div class="slot-strip" id="slotStrip1"></div></div>
+      <div class="slot-reel"><div class="slot-strip" id="slotStrip2"></div></div>
     </div>
-    <div class="slots-paytable" id="slotsPaytable"></div>
+    <div class="slot-result" id="slotResult"></div>
     <div class="bet-row">
       <div style="flex:1;">
         <div class="bet-label">Bet amount</div>
@@ -759,31 +805,7 @@
       </div>
     </div>
     <button class="action-btn start" id="slotsActionBtn">Spin</button>
-  </div>
-
-  <!-- ===== CRASH ===== -->
-  <div class="panel" id="panel-crash">
-    <div class="crash-history" id="crashHistory"></div>
-    <div class="crash-stage">
-      <div class="crash-rocket" id="crashRocket">🚀</div>
-      <div class="crash-mult" id="crashMultDisplay">1.00×</div>
-      <div class="crash-status" id="crashStatus">Place a bet to start a round</div>
-    </div>
-    <div class="bet-row">
-      <div style="flex:1;">
-        <div class="bet-label">Bet amount</div>
-        <input type="number" class="bet-input" id="crashBetInput" value="10" min="1">
-      </div>
-      <div class="bet-quick">
-        <button data-mult="0.5" data-target="crash">½</button>
-        <button data-mult="2" data-target="crash">2×</button>
-        <button data-max="1" data-target="crash">Max</button>
-      </div>
-    </div>
-    <div class="crash-actions">
-      <button class="action-btn start" id="crashBetBtn">Place Bet</button>
-      <button class="action-btn cashout" id="crashCashoutBtn" style="display:none;">Cashout</button>
-    </div>
+    <div class="slot-paytable" id="slotPaytable"></div>
   </div>
 
   <!-- ===== LEADERBOARD ===== -->
@@ -1253,15 +1275,20 @@
   })
   buildKenoGrid()
 
-  // ================= PLINKO (fixed) =================
+  // ================= PLINKO =================
   const PLINKO_ROWS = 10
+  const PLINKO_MAX_BALLS = 25
   let plinkoRisk = 'medium'
+  let plinkoActiveBalls = 0
+  const plinkoBoardEl = document.querySelector('.plinko-board')
   const plinkoPegsEl = document.getElementById('plinkoPegs')
   const plinkoBucketsEl = document.getElementById('plinkoBuckets')
-  const plinkoBallsEl = document.getElementById('plinkoBalls')
   const plinkoBetInput = document.getElementById('plinkoBetInput')
   const plinkoActionBtn = document.getElementById('plinkoActionBtn')
   const RISK_EXP = { low: 0.55, medium: 1.0, high: 1.7 }
+  const plinkoBucketHitCount = []
+  // rows fall slightly faster as the ball descends, like gravity picking up
+  const PLINKO_ROW_DELAYS = [150, 143, 136, 129, 122, 115, 108, 102, 96, 90]
 
   function nCr(n, r) { let res = 1; for (let i = 0; i < r; i++) res = res * (n - i) / (i + 1); return res }
   function plinkoMultipliers() {
@@ -1278,21 +1305,20 @@
     }
     return mults
   }
-  // Rows now match PLINKO_ROWS exactly (row i has i+1 pegs), so the number of
-  // visual peg rows lines up 1:1 with the number of coin-flip steps in the
-  // drop animation below — this mismatch was the root cause of the janky fall.
   function buildPlinkoBoard() {
     plinkoPegsEl.innerHTML = ''
-    for (let r = 1; r <= PLINKO_ROWS; r++) {
+    for (let r = 2; r <= PLINKO_ROWS; r++) {
       const row = document.createElement('div'); row.className = 'peg-row'; row.dataset.row = r
       for (let i = 0; i <= r; i++) { const p = document.createElement('div'); p.className = 'peg'; row.appendChild(p) }
       plinkoPegsEl.appendChild(row)
     }
     const mults = plinkoMultipliers()
     plinkoBucketsEl.innerHTML = ''
+    plinkoBucketHitCount.length = 0
     mults.forEach((m) => {
       const b = document.createElement('div'); b.className = 'bucket'; b.textContent = m.toFixed(1) + '×'
       plinkoBucketsEl.appendChild(b)
+      plinkoBucketHitCount.push(0)
     })
   }
   document.querySelectorAll('.risk-row button').forEach(btn => {
@@ -1304,33 +1330,36 @@
     })
   })
 
-  // Each drop gets its own ball element, so nothing blocks the button —
-  // click Drop as many times as you want and watch multiple balls fall at once.
-  async function dropOnePlinkoBall() {
-    const bet = parseFloat(plinkoBetInput.value) || 0
-    if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
-    if (bet > balance) { showToast('Not enough coins', 'lose'); return }
-    hapticTap()
-    balance -= bet; renderBalance(); saveBalance()
+  // Multiple balls can be in flight at once — each highlight is reference
+  // counted so one ball landing doesn't cut off another's glow on the same bucket.
+  function flashBucket(i) {
+    const el = plinkoBucketsEl.children[i]
+    if (!el) return
+    plinkoBucketHitCount[i] = (plinkoBucketHitCount[i] || 0) + 1
+    el.classList.add('hit')
+    setTimeout(() => {
+      plinkoBucketHitCount[i]--
+      if (plinkoBucketHitCount[i] <= 0) el.classList.remove('hit')
+    }, 500)
+  }
 
-    let bucket = 0
-    for (let i = 0; i < PLINKO_ROWS; i++) if (Math.random() < 0.5) bucket++
-    const mults = plinkoMultipliers()
-    const mult = mults[bucket]
-    const finalLeftPct = (bucket / PLINKO_ROWS) * 100
+  async function dropPlinkoBallInstance(targetBucket) {
+    // Each drop gets its own ball element, so any number can fall independently.
+    const rows = plinkoPegsEl.querySelectorAll('.peg-row')
+    const finalLeftPct = (targetBucket / PLINKO_ROWS) * 100
 
     const ball = document.createElement('div')
     ball.className = 'plinko-ball'
     ball.style.top = '4px'
     ball.style.left = '50%'
-    plinkoBallsEl.appendChild(ball)
+    plinkoBoardEl.appendChild(ball)
+    await sleep(35)
 
-    const rows = plinkoPegsEl.querySelectorAll('.peg-row')
     let leftPct = 50
     for (let step = 0; step < rows.length; step++) {
       const row = rows[step]
       const progress = (step + 1) / rows.length
-      const wobble = (Math.random() - 0.5) * (10 * (1 - progress))
+      const wobble = (Math.random() - 0.5) * (12 * (1 - progress))
       leftPct = 50 + (finalLeftPct - 50) * progress + wobble
       leftPct = Math.max(4, Math.min(96, leftPct))
       const rowTop = row.offsetTop + row.offsetHeight / 2
@@ -1343,28 +1372,53 @@
         pegs[pegIndex].classList.add('hit')
         setTimeout(() => pegs[pegIndex].classList.remove('hit'), 260)
       }
-      await new Promise(r => setTimeout(r, 110))
+      await sleep(PLINKO_ROW_DELAYS[step] || 95)
     }
 
     ball.style.top = (plinkoBucketsEl.offsetTop + 6) + 'px'
     ball.style.left = finalLeftPct + '%'
     ball.classList.add('landed')
+    flashBucket(targetBucket)
 
-    const bucketEls = plinkoBucketsEl.querySelectorAll('.bucket')
-    bucketEls[bucket].classList.add('hit')
+    setTimeout(() => {
+      ball.classList.add('removing')
+      setTimeout(() => ball.remove(), 320)
+    }, 550)
+  }
+
+  async function runPlinkoDrop(bet) {
+    let bucket = 0
+    for (let i = 0; i < PLINKO_ROWS; i++) if (Math.random() < 0.5) bucket++
+    const mults = plinkoMultipliers()
+    const mult = mults[bucket]
+
+    await dropPlinkoBallInstance(bucket)
 
     const payout = Math.floor(bet * mult)
     balance += payout
-    if (mult >= 1) { showToast(`${mult.toFixed(2)}× — +${payout} coins`, 'win', mult >= 3); celebrateWin(mult) }
-    else { showToast(`${mult.toFixed(2)}× — kept ${payout} coins`, 'lose'); reactLoss() }
+    if (mult >= 1) {
+      showToast(`${mult.toFixed(2)}× — +${payout} coins`, 'win', mult >= 3)
+      celebrateWin(mult)
+    } else {
+      showToast(`${mult.toFixed(2)}× — kept ${payout} coins`, 'lose')
+      reactLoss()
+    }
     renderBalance(); await saveBalance()
-
-    setTimeout(() => {
-      ball.remove()
-      bucketEls[bucket].classList.remove('hit')
-    }, 900)
+    plinkoActiveBalls--
   }
-  plinkoActionBtn.addEventListener('click', () => { dropOnePlinkoBall() })
+
+  // Not awaited on purpose — every click fires its own independent drop so
+  // you can keep dropping balls back to back without waiting on the last one.
+  plinkoActionBtn.addEventListener('click', () => {
+    const bet = parseFloat(plinkoBetInput.value) || 0
+    if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
+    if (bet > balance) { showToast('Not enough coins', 'lose'); return }
+    if (plinkoActiveBalls >= PLINKO_MAX_BALLS) { showToast('Too many balls in flight — hang on a sec', 'lose'); return }
+    hapticTap()
+    plinkoActiveBalls++
+    balance -= bet; renderBalance()
+    runPlinkoDrop(bet)
+  })
   buildPlinkoBoard()
 
   // ================= BLACKJACK =================
@@ -1418,6 +1472,8 @@
         </div>
       </div>`
     container.appendChild(el)
+    // wait for the deal-in animation to actually finish before flipping —
+    // flipping while it's still landing was what caused the visible flicker
     if (!faceDown) el.addEventListener('animationend', () => el.classList.add('flipped'), { once: true })
     return el
   }
@@ -1470,19 +1526,19 @@
     await bjDealCard(bjPlayerHand, bjPlayerCardsEl, false)
     await bjDealCard(bjDealerHand, bjDealerCardsEl, false)
     await bjDealCard(bjPlayerHand, bjPlayerCardsEl, false)
-    await bjDealCard(bjDealerHand, bjDealerCardsEl, true)
+    await bjDealCard(bjDealerHand, bjDealerCardsEl, true) // hidden hole card
     bjUpdateScores(false)
 
     if (bjIsBlackjack(bjPlayerHand)) {
       await sleep(300)
-      await bjResolve(true)
+      await bjResolve(true) // bjResolve clears bjBusy once the round fully settles
       return
     }
 
     bjHitBtn.disabled = false
     bjStandBtn.disabled = false
     bjDoubleBtn.disabled = balance < bjBet
-    bjBusy = false
+    bjBusy = false // now waiting on the player's decision
   }
 
   async function bjHit() {
@@ -1496,7 +1552,7 @@
     if (score === 21) { await bjStandFlow(); return }
     bjHitBtn.disabled = false
     bjStandBtn.disabled = false
-    bjBusy = false
+    bjBusy = false // double is never re-enabled after the first hit — only valid on 2 cards
   }
 
   async function bjDouble() {
@@ -1511,12 +1567,15 @@
     else await bjStandFlow()
   }
 
+  // Button handler — guarded, only fires when it's the player's turn to act.
   function bjStand() {
     if (!bjActive || bjBusy) return
     bjBusy = true
     bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjDoubleBtn.disabled = true
     bjStandFlow()
   }
+  // Internal flow, reused by Hit (auto-stand at 21) and Double — caller already
+  // holds the busy lock, so this never re-checks it.
   async function bjStandFlow() {
     await bjResolve(false)
   }
@@ -1524,6 +1583,7 @@
   async function bjResolve(playerBlackjack, playerBusted) {
     bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjDoubleBtn.disabled = true
 
+    // reveal hidden dealer card
     const holeCardEl = bjDealerCardsEl.children[1]
     if (holeCardEl && !holeCardEl.classList.contains('flipped')) {
       holeCardEl.classList.add('flipped')
@@ -1535,6 +1595,8 @@
     const playerScore = bjScore(bjPlayerHand)
 
     if (!playerBusted && !playerBlackjack) {
+      // Dealer draws to 17+. If the player busted, or has a natural
+      // blackjack, the dealer's hand is already final either way.
       while (dealerScore < 17) {
         await bjDealCard(bjDealerHand, bjDealerCardsEl, false)
         dealerScore = bjScore(bjDealerHand)
@@ -1590,223 +1652,277 @@
   bjStandBtn.addEventListener('click', bjStand)
   bjDoubleBtn.addEventListener('click', bjDouble)
 
-  // ================= SLOTS =================
-  const SLOT_SYMBOLS = [
-    { sym: '🍒', weight: 34, pay3: 3,  pay2: 1 },
-    { sym: '🍋', weight: 26, pay3: 5,  pay2: 0 },
-    { sym: '🔔', weight: 18, pay3: 8,  pay2: 0 },
-    { sym: '🍀', weight: 12, pay3: 15, pay2: 0 },
-    { sym: '💎', weight: 7,  pay3: 25, pay2: 0 },
-    { sym: '7️⃣', weight: 3,  pay3: 50, pay2: 0 },
-  ]
-  const SLOT_TOTAL_WEIGHT = SLOT_SYMBOLS.reduce((s, x) => s + x.weight, 0)
-  const CELL_H = 56
-  const slotsReelsEl = document.getElementById('slotsReels')
-  const slotsBetInput = document.getElementById('slotsBetInput')
-  const slotsActionBtn = document.getElementById('slotsActionBtn')
-  const slotsMachineEl = document.getElementById('slotsMachine')
-  const slotsPaytableEl = document.getElementById('slotsPaytable')
-
-  function slotsRandomSymbol() {
-    let r = Math.random() * SLOT_TOTAL_WEIGHT
-    for (const s of SLOT_SYMBOLS) { if (r < s.weight) return s; r -= s.weight }
-    return SLOT_SYMBOLS[0]
-  }
-  function buildSlotsPaytable() {
-    slotsPaytableEl.innerHTML = SLOT_SYMBOLS.map(s => `<div class="pt-item">${s.sym}${s.sym}${s.sym} = ${s.pay3}×</div>`).join('')
-  }
-  function buildSlotsReels() {
-    slotsReelsEl.innerHTML = ''
-    for (let r = 0; r < 3; r++) {
-      const reel = document.createElement('div'); reel.className = 'slot-reel'
-      const strip = document.createElement('div'); strip.className = 'slot-strip'
-      strip.style.transform = 'translateY(0px)'
-      for (let i = 0; i < 3; i++) {
-        const cell = document.createElement('div'); cell.className = 'slot-cell'
-        cell.textContent = slotsRandomSymbol().sym
-        strip.appendChild(cell)
-      }
-      reel.appendChild(strip)
-      slotsReelsEl.appendChild(reel)
-    }
-  }
-  async function spinReel(strip, finalSymbol, delay) {
-    // Build a long strip of random symbols ending in the winning middle row,
-    // then transition the whole strip upward — classic slot scroll-and-stop.
-    const spinLength = 22
-    const seq = []
-    for (let i = 0; i < spinLength; i++) seq.push(slotsRandomSymbol().sym)
-    seq.push(finalSymbol) // this becomes the middle (payline) cell
-    seq.push(slotsRandomSymbol().sym)
-
-    strip.style.transition = 'none'
-    strip.innerHTML = ''
-    seq.forEach(sym => {
-      const cell = document.createElement('div'); cell.className = 'slot-cell'; cell.textContent = sym
-      strip.appendChild(cell)
-    })
-    strip.style.transform = 'translateY(0px)'
-    void strip.offsetHeight
-
-    const targetIndex = spinLength - 1 // finalSymbol's index -> lands in middle row
-    const targetY = -(targetIndex - 1) * CELL_H // -1 so the row above shows above payline
-
-    await new Promise(r => setTimeout(r, delay))
-    strip.style.transition = `transform ${1.1 + delay / 1000}s cubic-bezier(.12,.85,.15,1)`
-    strip.style.transform = `translateY(${targetY}px)`
-    await new Promise(r => strip.addEventListener('transitionend', r, { once: true }))
-  }
-
-  slotsActionBtn.addEventListener('click', async () => {
-    const bet = parseFloat(slotsBetInput.value) || 0
-    if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
-    if (bet > balance) { showToast('Not enough coins', 'lose'); return }
-    hapticTap()
-    balance -= bet; renderBalance()
-    slotsActionBtn.disabled = true
-    slotsMachineEl.classList.remove('win-glow')
-
-    const results = [slotsRandomSymbol(), slotsRandomSymbol(), slotsRandomSymbol()]
-    const strips = slotsReelsEl.querySelectorAll('.slot-strip')
-    await Promise.all([
-      spinReel(strips[0], results[0].sym, 0),
-      spinReel(strips[1], results[1].sym, 250),
-      spinReel(strips[2], results[2].sym, 500),
-    ])
-
-    const [a, b, c] = results.map(r => r.sym)
-    let mult = 0
-    if (a === b && b === c) {
-      mult = results[0].pay3 * HOUSE_EDGE
-    } else if (a === b || b === c || a === c) {
-      // any matching pair including the middle reel pays the small pay2 bonus
-      const matchSym = a === b ? results[0] : (b === c ? results[1] : results[0])
-      mult = matchSym.pay2 * HOUSE_EDGE
-    }
-    const payout = Math.floor(bet * mult)
-
-    if (payout > 0) {
-      balance += payout
-      showToast(`${a}${b}${c} — +${payout} coins`, 'win', mult >= 15)
-      celebrateWin(mult)
-      slotsMachineEl.classList.add('win-glow')
-      strips.forEach(s => s.children[1]?.classList.add('win-cell'))
-      setTimeout(() => strips.forEach(s => s.children[1]?.classList.remove('win-cell')), 1400)
-    } else {
-      showToast(`${a}${b}${c} — lost ${bet} coins`, 'lose')
-      reactLoss()
-    }
-    renderBalance(); await saveBalance()
-    slotsActionBtn.disabled = false
-  })
-  buildSlotsPaytable()
-  buildSlotsReels()
-
   // ================= CRASH =================
-  const CRASH_GROWTH = Math.log(2) / 3.2 // multiplier doubles roughly every ~3.2s
+  const crashChartEl = document.querySelector('.crash-chart')
+  const crashSvgEl = document.getElementById('crashSvg')
+  const crashLineEl = document.getElementById('crashLine')
+  const crashFillEl = document.getElementById('crashFill')
+  const crashRocketEl = document.getElementById('crashRocket')
   const crashMultEl = document.getElementById('crashMultDisplay')
   const crashStatusEl = document.getElementById('crashStatus')
-  const crashRocketEl = document.getElementById('crashRocket')
-  const crashBetInput = document.getElementById('crashBetInput')
-  const crashBetBtn = document.getElementById('crashBetBtn')
-  const crashCashoutBtn = document.getElementById('crashCashoutBtn')
   const crashHistoryEl = document.getElementById('crashHistory')
+  const crashBetInput = document.getElementById('crashBetInput')
+  const crashActionBtn = document.getElementById('crashActionBtn')
+  const CRASH_GROWTH = 0.35 // multiplier ~doubles every ~2s
+  const CRASH_W = 300, CRASH_H = 170, CRASH_PAD = 14
 
-  let crashState = 'idle' // idle | running | crashed
-  let crashPoint = 1, crashStart = 0, crashBet = 0, crashCashedAt = null, crashRAF = null
-  const crashHistoryList = []
+  let crashRunning = false, crashCashedOut = false, crashBet = 0, crashPoint = 1, crashStartTime = 0, crashRAF = null
 
-  function generateCrashPoint() {
-    const instantCrashChance = 0.03
+  function crashGenerateCrashPoint() {
+    if (Math.random() < 0.03) return 1.00 // instant-crash slice, like real crash games
     const r = Math.random()
-    if (r < instantCrashChance) return 1.00
-    const raw = (1 - instantCrashChance) / (1 - r)
-    return Math.min(100, Math.max(1.01, raw))
+    const point = Math.min(HOUSE_EDGE / (1 - r), 100)
+    return Math.max(1.00, Math.round(point * 100) / 100)
+  }
+  function crashMultAt(t) { return Math.exp(CRASH_GROWTH * t) }
+
+  function crashRender(elapsed) {
+    const mult = crashMultAt(elapsed)
+    const xDomain = Math.max(elapsed * 1.15, 4)
+    const yDomainMax = Math.max(mult * 1.3, 2)
+    const N = 36
+    const pts = []
+    for (let i = 0; i <= N; i++) {
+      const t = (i / N) * elapsed
+      const m = crashMultAt(t)
+      const x = CRASH_PAD + (t / xDomain) * (CRASH_W - CRASH_PAD * 2)
+      const yT = Math.min(1, Math.log(Math.max(1, m)) / Math.log(yDomainMax))
+      const y = (CRASH_H - CRASH_PAD) - yT * (CRASH_H - CRASH_PAD * 2)
+      pts.push(x.toFixed(1) + ',' + y.toFixed(1))
+    }
+    crashLineEl.setAttribute('points', pts.join(' '))
+    const lastPt = pts[pts.length - 1].split(',')
+    crashFillEl.setAttribute('points', pts.join(' ') + ` ${lastPt[0]},${CRASH_H - CRASH_PAD} ${CRASH_PAD},${CRASH_H - CRASH_PAD}`)
+    crashRocketEl.style.left = (parseFloat(lastPt[0]) / CRASH_W * 100) + '%'
+    crashRocketEl.style.top = (parseFloat(lastPt[1]) / CRASH_H * 100) + '%'
+    crashMultEl.textContent = mult.toFixed(2) + '×'
   }
 
-  function pushCrashHistory(point) {
-    crashHistoryList.unshift(point)
-    if (crashHistoryList.length > 10) crashHistoryList.pop()
-    crashHistoryEl.innerHTML = crashHistoryList.map(p =>
-      `<div class="ch-item ${p >= 2 ? 'good' : 'bad'}">${p.toFixed(2)}×</div>`
-    ).join('')
+  function crashResetVisual() {
+    const y = CRASH_H - CRASH_PAD
+    crashLineEl.setAttribute('points', `${CRASH_PAD},${y} ${CRASH_W - CRASH_PAD},${y}`)
+    crashFillEl.setAttribute('points', `${CRASH_PAD},${y} ${CRASH_W - CRASH_PAD},${y} ${CRASH_W - CRASH_PAD},${y} ${CRASH_PAD},${y}`)
+    crashRocketEl.style.left = '5%'
+    crashRocketEl.style.top = '92%'
+    crashMultEl.textContent = '1.00×'
+    crashMultEl.classList.remove('busted', 'cashed')
+    crashLineEl.style.stroke = ''
   }
 
-  function crashTick(now) {
-    if (crashState !== 'running') return
-    const elapsed = (now - crashStart) / 1000
-    const mult = Math.exp(CRASH_GROWTH * elapsed)
+  function crashLoop() {
+    if (!crashRunning) return
+    const elapsed = (performance.now() - crashStartTime) / 1000
+    const mult = crashMultAt(elapsed)
     if (mult >= crashPoint) {
-      crashFinish()
+      crashRender(Math.log(crashPoint) / CRASH_GROWTH)
+      crashBust()
       return
     }
-    crashMultEl.textContent = mult.toFixed(2) + '×'
-    crashRocketEl.style.transform = `translateY(${-Math.min(40, elapsed * 6)}px) rotate(-45deg)`
-    crashRAF = requestAnimationFrame(crashTick)
+    crashRender(elapsed)
+    crashRAF = requestAnimationFrame(crashLoop)
   }
 
-  function crashFinish() {
-    crashState = 'crashed'
-    crashMultEl.textContent = crashPoint.toFixed(2) + '×'
-    crashMultEl.classList.add('crashed')
-    crashRocketEl.textContent = '💥'
-    pushCrashHistory(crashPoint)
-    if (crashCashedAt == null) {
-      crashStatusEl.textContent = `Crashed at ${crashPoint.toFixed(2)}× — lost ${crashBet} coins`
-      reactLoss()
-    } else {
-      crashStatusEl.textContent = `Crashed at ${crashPoint.toFixed(2)}× — you were already out at ${crashCashedAt.toFixed(2)}×`
-    }
-    crashCashoutBtn.style.display = 'none'
-    setTimeout(() => {
-      crashState = 'idle'
-      crashMultEl.textContent = '1.00×'
-      crashMultEl.classList.remove('crashed', 'cashed')
-      crashRocketEl.textContent = '🚀'
-      crashRocketEl.style.transform = 'translateY(0) rotate(-45deg)'
-      crashStatusEl.textContent = 'Place a bet to start a round'
-      crashBetBtn.style.display = 'block'
-      crashBetBtn.disabled = false
-      crashBetInput.disabled = false
-    }, 2200)
+  function crashPushHistory(mult, type) {
+    const chip = document.createElement('div')
+    chip.className = 'crash-chip ' + type
+    chip.textContent = mult.toFixed(2) + '×'
+    crashHistoryEl.insertBefore(chip, crashHistoryEl.firstChild)
+    while (crashHistoryEl.children.length > 12) crashHistoryEl.removeChild(crashHistoryEl.lastChild)
   }
 
-  function crashCashout() {
-    if (crashState !== 'running' || crashCashedAt != null) return
-    const elapsed = (performance.now() - crashStart) / 1000
-    const mult = Math.exp(CRASH_GROWTH * elapsed)
-    crashCashedAt = mult
-    const payout = Math.floor(crashBet * mult * HOUSE_EDGE)
-    balance += payout
-    renderBalance(); saveBalance()
-    hapticSuccess()
-    crashMultEl.classList.add('cashed')
-    crashStatusEl.textContent = `Cashed out at ${mult.toFixed(2)}× — +${payout} coins`
-    crashCashoutBtn.style.display = 'none'
-    celebrateWin(mult)
+  function crashGlow(type) {
+    crashChartEl.classList.remove('glow-win', 'glow-lose')
+    void crashChartEl.offsetWidth
+    crashChartEl.classList.add(type === 'win' ? 'glow-win' : 'glow-lose')
+    setTimeout(() => crashChartEl.classList.remove('glow-win', 'glow-lose'), 1000)
   }
 
-  crashBetBtn.addEventListener('click', () => {
-    if (crashState !== 'idle') return
+  async function crashStart() {
+    if (crashRunning) return
     const bet = parseFloat(crashBetInput.value) || 0
     if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
     if (bet > balance) { showToast('Not enough coins', 'lose'); return }
     hapticTap()
     crashBet = bet
-    crashCashedAt = null
     balance -= bet; renderBalance(); saveBalance()
 
-    crashState = 'running'
-    crashPoint = generateCrashPoint()
-    crashStart = performance.now()
-    crashMultEl.classList.remove('crashed', 'cashed')
-    crashStatusEl.textContent = 'Round in progress — cash out any time'
-    crashBetBtn.style.display = 'none'
+    crashCashedOut = false
+    crashPoint = crashGenerateCrashPoint()
+    crashResetVisual()
+    crashStatusEl.textContent = 'Flying…'
+    crashActionBtn.textContent = 'Cash Out'
+    crashActionBtn.className = 'action-btn cashout'
     crashBetInput.disabled = true
-    crashCashoutBtn.style.display = 'block'
-    crashRAF = requestAnimationFrame(crashTick)
-  })
-  crashCashoutBtn.addEventListener('click', crashCashout)
+
+    crashRunning = true
+    crashStartTime = performance.now()
+    crashRAF = requestAnimationFrame(crashLoop)
+  }
+
+  function crashCashOut() {
+    if (!crashRunning || crashCashedOut) return
+    hapticTap()
+    const elapsed = (performance.now() - crashStartTime) / 1000
+    const mult = crashMultAt(elapsed)
+    crashCashedOut = true
+    const payout = Math.floor(crashBet * mult)
+    balance += payout
+    crashMultEl.classList.add('cashed')
+    crashLineEl.style.stroke = 'var(--gold)'
+    crashStatusEl.textContent = `Cashed out at ${mult.toFixed(2)}× — waiting for the crash…`
+    showToast(`Cashed out — +${payout} coins`, 'win', mult >= 3)
+    crashGlow('win'); celebrateWin(mult)
+    crashPushHistory(mult, 'win')
+    renderBalance(); saveBalance()
+    crashActionBtn.disabled = true
+  }
+
+  function crashBust() {
+    crashRunning = false
+    if (crashRAF) cancelAnimationFrame(crashRAF)
+    crashMultEl.textContent = crashPoint.toFixed(2) + '×'
+    if (!crashCashedOut) {
+      crashMultEl.classList.add('busted')
+      crashLineEl.style.stroke = 'var(--red)'
+      crashStatusEl.textContent = 'Crashed!'
+      showToast(`Crashed at ${crashPoint.toFixed(2)}× — lost ${crashBet} coins`, 'lose')
+      crashGlow('lose'); reactLoss()
+      crashPushHistory(crashPoint, 'lose')
+    } else {
+      crashStatusEl.textContent = `Crashed at ${crashPoint.toFixed(2)}× — you got out in time`
+    }
+    crashActionBtn.textContent = 'Place Bet'
+    crashActionBtn.className = 'action-btn start'
+    crashActionBtn.disabled = false
+    crashBetInput.disabled = false
+  }
+
+  crashActionBtn.addEventListener('click', () => { crashRunning ? crashCashOut() : crashStart() })
+  crashResetVisual()
+
+  // ================= SLOTS =================
+  const SLOT_SYMBOLS = [
+    { sym: '🍒', weight: 30 }, { sym: '🍋', weight: 24 }, { sym: '🍊', weight: 18 },
+    { sym: '🍇', weight: 12 }, { sym: '🔔', weight: 8 }, { sym: '⭐', weight: 5 },
+    { sym: '7️⃣', weight: 2 }, { sym: '💎', weight: 1 },
+  ]
+  const SLOT_PAYOUTS = { '💎': 50, '7️⃣': 25, '⭐': 15, '🔔': 10, '🍇': 6, '🍊': 4, '🍋': 3, '🍒': 2 }
+  const SLOT_TOTAL_WEIGHT = SLOT_SYMBOLS.reduce((s, x) => s + x.weight, 0)
+  const SLOT_SYM_H = 64
+  const SLOT_STRIP_LEN = 24
+  const slotStripEls = [0, 1, 2].map(i => document.getElementById('slotStrip' + i))
+  const slotsBetInput = document.getElementById('slotsBetInput')
+  const slotsActionBtn = document.getElementById('slotsActionBtn')
+  const slotResultEl = document.getElementById('slotResult')
+  let slotBusy = false
+
+  function slotPickSymbol() {
+    let r = Math.random() * SLOT_TOTAL_WEIGHT
+    for (const s of SLOT_SYMBOLS) { if (r < s.weight) return s.sym; r -= s.weight }
+    return SLOT_SYMBOLS[0].sym
+  }
+
+  function buildSlotPaytable() {
+    const el = document.getElementById('slotPaytable')
+    el.innerHTML = ''
+    Object.entries(SLOT_PAYOUTS).forEach(([sym, mult]) => {
+      const item = document.createElement('div')
+      item.className = 'slot-pt-item'
+      item.innerHTML = `<span class="sym">${sym}${sym}${sym}</span> ${mult}×`
+      el.appendChild(item)
+    })
+    const pair = document.createElement('div')
+    pair.className = 'slot-pt-item'
+    pair.textContent = 'Any pair — 1×'
+    el.appendChild(pair)
+  }
+
+  function slotBuildStrip(stripEl, targetSymbol) {
+    stripEl.style.transition = 'none'
+    stripEl.style.transform = 'translateY(0)'
+    stripEl.innerHTML = ''
+    for (let i = 0; i < SLOT_STRIP_LEN; i++) {
+      const sym = (i === SLOT_STRIP_LEN - 2) ? targetSymbol : slotPickSymbol()
+      const div = document.createElement('div')
+      div.className = 'slot-sym'
+      div.textContent = sym
+      stripEl.appendChild(div)
+    }
+    void stripEl.offsetWidth // force reflow so the spin transition starts from translateY(0)
+  }
+
+  function slotSpinStrip(stripEl, duration) {
+    return new Promise(resolve => {
+      stripEl.classList.add('spin-blur')
+      const finalY = -((SLOT_STRIP_LEN - 3) * SLOT_SYM_H)
+      const overshootY = finalY - 14
+      stripEl.style.transition = `transform ${(duration / 1000).toFixed(2)}s cubic-bezier(.12,.86,.34,1)`
+      requestAnimationFrame(() => { stripEl.style.transform = `translateY(${overshootY}px)` })
+      setTimeout(() => {
+        stripEl.style.transition = 'transform 0.18s cubic-bezier(.34,1.6,.64,1)'
+        stripEl.style.transform = `translateY(${finalY}px)`
+        stripEl.classList.remove('spin-blur')
+        setTimeout(resolve, 190)
+      }, duration)
+    })
+  }
+
+  async function slotsSpin() {
+    if (slotBusy) return
+    const bet = parseFloat(slotsBetInput.value) || 0
+    if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
+    if (bet > balance) { showToast('Not enough coins', 'lose'); return }
+    hapticTap()
+    slotBusy = true
+    slotsActionBtn.disabled = true
+    slotsBetInput.disabled = true
+    slotResultEl.className = 'slot-result'
+    balance -= bet; renderBalance(); saveBalance()
+
+    const results = [slotPickSymbol(), slotPickSymbol(), slotPickSymbol()]
+    slotStripEls.forEach((el, i) => slotBuildStrip(el, results[i]))
+
+    const durations = [900, 1150, 1400]
+    await Promise.all(slotStripEls.map((el, i) => (async () => {
+      await sleep(i * 120)
+      hapticTap()
+      await slotSpinStrip(el, durations[i])
+    })()))
+
+    const [a, b, c] = results
+    let mult = 0
+    if (a === b && b === c) mult = (SLOT_PAYOUTS[a] || 2) * HOUSE_EDGE
+    else if (a === b || b === c || a === c) mult = 1 * HOUSE_EDGE
+
+    const payout = Math.floor(bet * mult)
+    if (mult >= 2) {
+      balance += payout
+      slotResultEl.textContent = (a === b && b === c ? '🎉 Line hit — ' : '') + `+${payout} coins`
+      slotResultEl.className = 'slot-result show win'
+      showToast(`+${payout} coins`, 'win', mult >= 10)
+      celebrateWin(mult)
+    } else if (mult > 0) {
+      balance += payout
+      slotResultEl.textContent = `Small win — +${payout} coins`
+      slotResultEl.className = 'slot-result show win'
+      showToast(`+${payout} coins`, 'win')
+      celebrateWin(1.2)
+    } else {
+      slotResultEl.textContent = `No match — lost ${bet} coins`
+      slotResultEl.className = 'slot-result show lose'
+      showToast(`Lost ${bet} coins`, 'lose')
+      reactLoss()
+    }
+    renderBalance(); await saveBalance()
+
+    slotBusy = false
+    slotsActionBtn.disabled = false
+    slotsBetInput.disabled = false
+  }
+
+  slotsActionBtn.addEventListener('click', slotsSpin)
+  buildSlotPaytable()
+  slotStripEls.forEach(el => slotBuildStrip(el, slotPickSymbol()))
 
   // ---------------- init ----------------
   loadBalance()
