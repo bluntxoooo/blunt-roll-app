@@ -282,6 +282,34 @@
     border-radius: 10px; padding: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer;
   }
   .risk-row button.active { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); }
+
+  /* ---- Leaderboard ---- */
+  .lb-list { display: flex; flex-direction: column; gap: 8px; }
+  .lb-empty { color: var(--ink-dim); font-size: 0.85rem; text-align: center; padding: 24px 0; }
+  .lb-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg-raised); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px 14px;
+  }
+  .lb-row.me { border-color: var(--cyan); background: var(--cyan-dim); }
+  .lb-rank {
+    width: 28px; flex-shrink: 0; text-align: center; font-weight: 800;
+    font-family: 'JetBrains Mono', monospace; color: var(--ink-dim); font-size: 0.9rem;
+  }
+  .lb-rank.gold { color: var(--gold); font-size: 1.15rem; }
+  .lb-rank.silver { color: #c9ccd6; font-size: 1.05rem; }
+  .lb-rank.bronze { color: #d68a4c; font-size: 1.0rem; }
+  .lb-name { flex: 1; font-weight: 700; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-coins { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--gold); font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
+
+  /* ---- Rewards ---- */
+  .rewards-card {
+    background: var(--bg-raised); border: 1px dashed var(--line);
+    border-radius: 16px; padding: 40px 24px; text-align: center; margin-top: 12px;
+  }
+  .rewards-icon { font-size: 2.4rem; margin-bottom: 12px; }
+  .rewards-title { font-weight: 800; font-size: 1.2rem; margin-bottom: 8px; }
+  .rewards-sub { color: var(--ink-dim); font-size: 0.88rem; line-height: 1.5; max-width: 320px; margin: 0 auto; }
 </style>
 </head>
 <body>
@@ -301,6 +329,8 @@
   <button class="tab-btn" data-tab="dice">🎲 Dice</button>
   <button class="tab-btn" data-tab="keno">#️⃣ Keno</button>
   <button class="tab-btn" data-tab="flip">🪙 Flip</button>
+  <button class="tab-btn" data-tab="leaderboard">🏆 Leaderboard</button>
+  <button class="tab-btn" data-tab="rewards">🎁 Rewards</button>
 </div>
 
 <main>
@@ -458,6 +488,23 @@
     <button class="action-btn start" id="flipActionBtn">Flip</button>
   </div>
 
+  <!-- ===== LEADERBOARD ===== -->
+  <div class="panel" id="panel-leaderboard">
+    <div class="section-label">Top 50 by coins</div>
+    <div id="leaderboardList" class="lb-list">
+      <div class="lb-empty">Loading leaderboard…</div>
+    </div>
+  </div>
+
+  <!-- ===== REWARDS ===== -->
+  <div class="panel" id="panel-rewards">
+    <div class="rewards-card">
+      <div class="rewards-icon">🎁</div>
+      <div class="rewards-title">Stack your coins</div>
+      <div class="rewards-sub">Rewards are coming soon — the more you stack now, the more you'll have when they drop.</div>
+    </div>
+  </div>
+
 </main>
 
 <div class="toast" id="toast"></div>
@@ -606,6 +653,46 @@
   function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab))
     document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab))
+    if (tab === 'leaderboard') loadLeaderboard()
+  }
+
+  // ================= LEADERBOARD =================
+  const RANK_MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' }
+  const RANK_CLASS = { 1: 'gold', 2: 'silver', 3: 'bronze' }
+
+  async function loadLeaderboard() {
+    const listEl = document.getElementById('leaderboardList')
+    listEl.innerHTML = '<div class="lb-empty">Loading leaderboard…</div>'
+    const { data, error } = await supabase
+      .from('balances')
+      .select('user_id,username,coins')
+      .order('coins', { ascending: false })
+      .limit(50)
+
+    if (error) {
+      console.error('leaderboard load error', error)
+      listEl.innerHTML = '<div class="lb-empty">Couldn\'t load the leaderboard — try again in a moment.</div>'
+      return
+    }
+    if (!data || data.length === 0) {
+      listEl.innerHTML = '<div class="lb-empty">No one on the board yet — be the first!</div>'
+      return
+    }
+
+    listEl.innerHTML = ''
+    data.forEach((row, i) => {
+      const rank = i + 1
+      const isMe = String(row.user_id) === String(userId)
+      const name = row.username ? '@' + row.username : `user${String(row.user_id).slice(-4)}`
+      const el = document.createElement('div')
+      el.className = 'lb-row' + (isMe ? ' me' : '')
+      el.innerHTML = `
+        <div class="lb-rank ${RANK_CLASS[rank] || ''}">${RANK_MEDAL[rank] || rank}</div>
+        <div class="lb-name">${name}${isMe ? ' (you)' : ''}</div>
+        <div class="lb-coins"><span class="coin">●</span>${Math.floor(row.coins)}</div>
+      `
+      listEl.appendChild(el)
+    })
   }
 
   // ================= MINES =================
