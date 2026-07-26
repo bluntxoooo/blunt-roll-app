@@ -535,33 +535,77 @@
 
   /* ---- Crash ---- */
   .crash-stage {
-    background: radial-gradient(ellipse at 50% 100%, rgba(255,71,87,0.08), transparent 60%), var(--navy-deep);
+    background:
+      radial-gradient(ellipse at 20% 110%, rgba(0,230,118,0.10), transparent 55%),
+      radial-gradient(circle at 80% 15%, rgba(167,139,250,0.10), transparent 45%),
+      var(--navy-deep);
     border: 1px solid var(--line); border-radius: 18px; padding: 0; margin-bottom: 16px;
-    position: relative; overflow: hidden; min-height: 260px;
+    position: relative; overflow: hidden; min-height: 280px;
   }
-  .crash-grid { position: absolute; inset: 0; opacity: 0.5; }
-  .crash-grid-line {
-    position: absolute; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.05);
+  /* scattered stars via one repeating radial-gradient layer — cheap and static */
+  .crash-stars {
+    position: absolute; inset: 0; opacity: 0.55;
+    background-image:
+      radial-gradient(1.5px 1.5px at 10% 20%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 30% 70%, #fff, transparent),
+      radial-gradient(1px 1px at 50% 30%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 70% 80%, #fff, transparent),
+      radial-gradient(1px 1px at 85% 25%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 92% 60%, #fff, transparent),
+      radial-gradient(1px 1px at 15% 55%, #fff, transparent),
+      radial-gradient(1px 1px at 60% 12%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 40% 90%, #fff, transparent);
+    background-repeat: no-repeat;
   }
-  .crash-canvas-wrap { position: absolute; inset: 0; }
+  .crash-planet {
+    position: absolute; right: -60px; bottom: -70px; width: 160px; height: 160px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #2a3a56, #0d1420 70%);
+    box-shadow: -10px -6px 0 -4px rgba(255,255,255,0.03) inset, 0 0 40px rgba(0,0,0,0.5);
+    opacity: 0.8;
+  }
+  .crash-ladder {
+    position: absolute; right: 10px; top: 10px; bottom: 10px; z-index: 2;
+    display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end;
+    pointer-events: none;
+  }
+  .crash-ladder .rung {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; font-weight: 700;
+    color: rgba(255,255,255,0.28); letter-spacing: 0.02em;
+  }
+  .crash-canvas-wrap { position: absolute; inset: 0; z-index: 1; }
   .crash-overlay {
-    position: relative; z-index: 2; height: 260px;
+    position: relative; z-index: 3; height: 280px;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     text-align: center; pointer-events: none;
   }
-  .crash-mult {
-    font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 3rem; color: var(--cyan);
-    transition: color 0.2s ease, transform 0.15s ease; text-shadow: 0 0 24px rgba(0,230,118,0.35);
+  .crash-mult-card {
+    background: rgba(6,10,18,0.55); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 14px 30px; backdrop-filter: blur(2px);
+    box-shadow: 0 0 40px rgba(0,230,118,0.12);
   }
-  .crash-mult.risky { color: var(--gold); text-shadow: 0 0 24px rgba(255,201,61,0.4); }
-  .crash-mult.danger { color: var(--red); text-shadow: 0 0 24px rgba(255,71,87,0.5); }
+  .crash-mult {
+    font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 2.7rem; color: var(--cyan);
+    transition: color 0.2s ease, transform 0.15s ease; text-shadow: 0 0 26px rgba(0,230,118,0.45);
+  }
+  .crash-mult.risky { color: var(--gold); text-shadow: 0 0 26px rgba(255,201,61,0.45); }
+  .crash-mult.danger { color: var(--red); text-shadow: 0 0 26px rgba(255,71,87,0.55); }
   .crash-mult.crashed { color: var(--red); animation: crashShake 0.4s ease; }
   .crash-mult.cashed { color: var(--gold); }
   @keyframes crashShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
-  .crash-status { color: var(--ink-dim); font-size: 0.85rem; font-weight: 700; margin-top: 8px; min-height: 20px; }
+  .crash-status { color: var(--ink-dim); font-size: 0.82rem; font-weight: 700; margin-top: 10px; min-height: 20px; }
+  .crash-target-row {
+    position: relative; z-index: 3; display: flex; align-items: center; justify-content: center;
+    gap: 8px; margin-top: 4px; pointer-events: auto;
+  }
+  .crash-target-row label { font-size: 0.7rem; color: var(--ink-dim); font-weight: 700; }
+  .crash-target-row input {
+    width: 64px; background: rgba(6,10,18,0.6); border: 1px solid var(--line); border-radius: 8px;
+    color: var(--ink); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.82rem;
+    text-align: center; padding: 5px 4px; outline: none;
+  }
   .crash-rocket {
-    position: absolute; font-size: 1.6rem; left: 10%; bottom: 14%; z-index: 3;
-    transform: translate(0, 0) rotate(-45deg); transition: transform 0.1s linear; filter: drop-shadow(0 0 8px rgba(0,230,118,0.6));
+    position: absolute; font-size: 1.5rem; left: 8%; bottom: 12%; z-index: 3;
+    transform: translate(0, 0) rotate(-45deg); transition: transform 0.1s linear; filter: drop-shadow(0 0 10px rgba(0,230,118,0.7));
   }
   .crash-particle {
     position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--gold);
@@ -810,8 +854,9 @@
   <!-- ===== SLOTS ===== -->
   <div class="panel" id="panel-slots">
     <div class="slots-machine" id="slotsMachine">
-      <div class="slots-reels" id="slotsReels"></div>
-      <div class="slot-payline"></div>
+      <div class="slots-reels" id="slotsReels">
+        <div class="slot-payline"></div>
+      </div>
       <div class="win-banner" id="slotsWinBanner"></div>
     </div>
     <div class="slots-paytable" id="slotsPaytable"></div>
@@ -833,8 +878,9 @@
   <div class="panel" id="panel-crash">
     <div class="crash-history" id="crashHistory"></div>
     <div class="crash-stage" id="crashStage">
-      <div class="crash-grid" id="crashGrid"></div>
-      <svg class="crash-canvas-wrap" id="crashSvg" viewBox="0 0 400 260" preserveAspectRatio="none">
+      <div class="crash-stars"></div>
+      <div class="crash-planet"></div>
+      <svg class="crash-canvas-wrap" id="crashSvg" viewBox="0 0 400 280" preserveAspectRatio="none">
         <defs>
           <linearGradient id="crashLineGrad" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stop-color="#00e676"/>
@@ -842,17 +888,31 @@
             <stop offset="100%" stop-color="#ff4757"/>
           </linearGradient>
           <linearGradient id="crashFillGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="rgba(0,230,118,0.28)"/>
+            <stop offset="0%" stop-color="rgba(0,230,118,0.22)"/>
             <stop offset="100%" stop-color="rgba(0,230,118,0)"/>
           </linearGradient>
         </defs>
         <path id="crashFillPath" fill="url(#crashFillGrad)" stroke="none"></path>
         <path id="crashLinePath" fill="none" stroke="url(#crashLineGrad)" stroke-width="3" stroke-linecap="round"></path>
       </svg>
+      <div class="crash-ladder" id="crashLadder">
+        <div class="rung">50×</div>
+        <div class="rung">20×</div>
+        <div class="rung">10×</div>
+        <div class="rung">5×</div>
+        <div class="rung">2×</div>
+        <div class="rung">1×</div>
+      </div>
       <div class="crash-rocket" id="crashRocket">🚀</div>
       <div class="crash-overlay">
-        <div class="crash-mult" id="crashMultDisplay">1.00×</div>
+        <div class="crash-mult-card">
+          <div class="crash-mult" id="crashMultDisplay">1.00×</div>
+        </div>
         <div class="crash-status" id="crashStatus">Place a bet to start a round</div>
+        <div class="crash-target-row">
+          <label for="crashTargetInput">Auto cashout at</label>
+          <input type="number" id="crashTargetInput" value="2.00" step="0.1" min="1.01">
+        </div>
       </div>
     </div>
     <div class="bet-row">
@@ -1702,6 +1762,10 @@
     slotsPaytableEl.innerHTML = SLOT_SYMBOLS.map(s => `<div class="pt-item">${s.sym}${s.sym}${s.sym} = ${s.pay3}×</div>`).join('')
   }
   function buildSlotsReels() {
+    // Keep the payline overlay — it lives inside this same container now so
+    // its position is measured against the reels themselves, not the padded
+    // machine wrapper (that mismatch was the source of the misaligned line).
+    const existingPayline = slotsReelsEl.querySelector('.slot-payline')
     slotsReelsEl.innerHTML = ''
     for (let r = 0; r < 3; r++) {
       const reel = document.createElement('div'); reel.className = 'slot-reel'
@@ -1715,6 +1779,7 @@
       reel.appendChild(strip)
       slotsReelsEl.appendChild(reel)
     }
+    slotsReelsEl.appendChild(existingPayline || Object.assign(document.createElement('div'), { className: 'slot-payline' }))
   }
   const slotsWinBannerEl = document.getElementById('slotsWinBanner')
 
@@ -1729,10 +1794,11 @@
   // Spins the strip with three visible phases: a blurred fast scroll, a
   // decelerating settle, then a tiny bounce past the target and back — this
   // overshoot-and-correct is what makes a stopped reel feel physical instead
-  // of just snapping into place. `slow` stretches the whole sequence for the
-  // anticipation reel (when the first two symbols already match).
-  async function spinReel(strip, finalSymbol, delay, slow) {
-    const spinLength = slow ? 30 : 22
+  // of just snapping into place. `mainDur` controls how long this reel spins
+  // before settling — reels are staggered by duration, not by start delay,
+  // so all three visibly start spinning at the same instant.
+  async function spinReel(strip, finalSymbol, mainDur) {
+    const spinLength = 26
     const seq = []
     for (let i = 0; i < spinLength; i++) seq.push(slotsRandomSymbol().sym)
     seq.push(finalSymbol) // lands in the middle (payline) row
@@ -1752,10 +1818,7 @@
     const targetY = -(targetIndex - 1) * CELL_H
     const overshootY = targetY - CELL_H * 0.28 // travels slightly past, then springs back
 
-    await new Promise(r => setTimeout(r, delay))
     strip.classList.add('blurring')
-
-    const mainDur = (slow ? 1.6 : 1.15) + delay / 1000
     strip.style.transition = `transform ${mainDur}s cubic-bezier(.13,.82,.1,1)`
     strip.style.transform = `translateY(${overshootY}px)`
     await new Promise(r => strip.addEventListener('transitionend', r, { once: true }))
@@ -1780,12 +1843,16 @@
     const reels = slotsReelsEl.querySelectorAll('.slot-reel')
     const anticipate = results[0].sym === results[1].sym // build suspense for reel 3
 
+    // All three reels start spinning at the same instant; only how long each
+    // one takes to stop differs — reel 1 stops first, then 2, then 3.
+    const reel3Dur = anticipate ? 2.3 : 1.5
+    if (anticipate) setTimeout(() => reels[2].classList.add('anticipating'), 1050)
+
     await Promise.all([
-      spinReel(strips[0], results[0].sym, 0, false),
-      spinReel(strips[1], results[1].sym, 250, false),
+      spinReel(strips[0], results[0].sym, 0.9),
+      spinReel(strips[1], results[1].sym, 1.2),
+      spinReel(strips[2], results[2].sym, reel3Dur),
     ])
-    if (anticipate) { reels[2].classList.add('anticipating'); hapticTap() }
-    await spinReel(strips[2], results[2].sym, anticipate ? 150 : 250, anticipate)
     reels[2].classList.remove('anticipating')
 
     const [a, b, c] = results.map(r => r.sym)
@@ -1821,15 +1888,15 @@
 
   // ================= CRASH =================
   const CRASH_GROWTH = Math.log(2) / 3.2 // multiplier doubles roughly every ~3.2s
-  const CRASH_W = 400, CRASH_H = 260
+  const CRASH_W = 400, CRASH_H = 280
   const crashMultEl = document.getElementById('crashMultDisplay')
   const crashStatusEl = document.getElementById('crashStatus')
   const crashRocketEl = document.getElementById('crashRocket')
   const crashStageEl = document.getElementById('crashStage')
-  const crashGridEl = document.getElementById('crashGrid')
   const crashLinePathEl = document.getElementById('crashLinePath')
   const crashFillPathEl = document.getElementById('crashFillPath')
   const crashBetInput = document.getElementById('crashBetInput')
+  const crashTargetInput = document.getElementById('crashTargetInput')
   const crashBetBtn = document.getElementById('crashBetBtn')
   const crashCashoutBtn = document.getElementById('crashCashoutBtn')
   const crashHistoryEl = document.getElementById('crashHistory')
@@ -1838,14 +1905,6 @@
   let crashPoint = 1, crashStart = 0, crashBet = 0, crashCashedAt = null, crashRAF = null
   let crashPoints = [] // [{t, mult}] sampled each frame, used to draw the graph
   const crashHistoryList = []
-
-  // faint horizontal grid lines, drawn once
-  for (let i = 1; i < 5; i++) {
-    const line = document.createElement('div')
-    line.className = 'crash-grid-line'
-    line.style.top = (i * 20) + '%'
-    crashGridEl.appendChild(line)
-  }
 
   function generateCrashPoint() {
     const instantCrashChance = 0.03
@@ -1923,6 +1982,14 @@
     if (riskClass === 'danger') crashCashoutBtn.classList.add('urgent')
     crashPoints.push({ t: elapsed, mult })
     crashRenderGraph()
+
+    // auto cash-out: if the player set a target and we've reached it, cash
+    // out automatically rather than requiring a manual tap in time
+    const target = parseFloat(crashTargetInput.value)
+    if (crashCashedAt == null && target && target >= 1.01 && mult >= target) {
+      crashCashout()
+    }
+
     crashRAF = requestAnimationFrame(crashTick)
   }
 
@@ -1955,6 +2022,7 @@
       crashBetBtn.style.display = 'block'
       crashBetBtn.disabled = false
       crashBetInput.disabled = false
+      crashTargetInput.disabled = false
     }, 2200)
   }
 
@@ -1996,6 +2064,7 @@
     crashStatusEl.textContent = 'Round in progress — cash out any time'
     crashBetBtn.style.display = 'none'
     crashBetInput.disabled = true
+    crashTargetInput.disabled = true
     crashCashoutBtn.style.display = 'block'
     crashRAF = requestAnimationFrame(crashTick)
   })
