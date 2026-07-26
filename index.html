@@ -885,6 +885,13 @@
         <button data-max="1" data-target="slots">Max</button>
       </div>
     </div>
+    <div class="crash-target-row" style="margin-bottom: 12px;">
+      <label class="crash-switch">
+        <input type="checkbox" id="slotsAutoToggle">
+        <span class="track"><span class="thumb"></span></span>
+      </label>
+      <label class="crash-target-label" for="slotsAutoToggle">Auto spin</label>
+    </div>
     <button class="action-btn start" id="slotsActionBtn">Spin</button>
   </div>
 
@@ -1810,41 +1817,41 @@
     slotsReelsEl.appendChild(existingPayline || Object.assign(document.createElement('div'), { className: 'slot-payline' }))
   }
   const slotsWinBannerEl = document.getElementById('slotsWinBanner')
+  const slotsAutoToggle = document.getElementById('slotsAutoToggle')
+  let slotsAutoRunning = false
 
   function slotsShowBanner(text) {
     slotsWinBannerEl.textContent = text
     slotsWinBannerEl.classList.remove('show')
     void slotsWinBannerEl.offsetWidth
     slotsWinBannerEl.classList.add('show')
-    setTimeout(() => slotsWinBannerEl.classList.remove('show'), 1650)
+    setTimeout(() => slotsWinBannerEl.classList.remove('show'), 1300)
   }
 
-  // Spins the strip with three visible phases: a blurred fast scroll, a
-  // decelerating settle, then a tiny bounce past the target and back — this
-  // overshoot-and-correct is what makes a stopped reel feel physical instead
-  // of just snapping into place. `mainDur` controls how long this reel spins
-  // before settling — reels are staggered by duration, not by start delay,
-  // so all three visibly start spinning at the same instant.
-  async function spinReel(strip, finalSymbol, mainDur) {
-    const spinLength = 26
+  // Spins one reel to a specific [top, mid, bottom] result. Faster and
+  // shorter than before (fewer scrolled cells, quicker transitions) — still
+  // keeps the blur + tiny overshoot-bounce settle so it reads as physical
+  // rather than an instant snap. Returns the three landed cell elements so
+  // the caller can highlight whichever payline(s) actually won.
+  async function spinReel(strip, resultSyms, mainDur) {
+    const spinLength = 12
     const seq = []
-    for (let i = 0; i < spinLength; i++) seq.push(slotsRandomSymbol().sym)
-    seq.push(finalSymbol) // lands in the middle (payline) row
-    seq.push(slotsRandomSymbol().sym)
+    for (let i = 0; i < spinLength; i++) seq.push(slotsRandomSymbol())
+    seq.push(resultSyms[0], resultSyms[1], resultSyms[2]) // top, mid, bottom — lands in view together
 
     strip.style.transition = 'none'
     strip.innerHTML = ''
-    seq.forEach(sym => {
-      const cell = document.createElement('div'); cell.className = 'slot-cell'; cell.textContent = sym
+    const cellEls = seq.map(s => {
+      const cell = document.createElement('div'); cell.className = 'slot-cell'; cell.textContent = s.sym
       strip.appendChild(cell)
+      return cell
     })
     strip.style.transform = 'translateY(0px)'
     strip.classList.remove('blurring')
     void strip.offsetHeight
 
-    const targetIndex = spinLength - 1
-    const targetY = -(targetIndex - 1) * CELL_H
-    const overshootY = targetY - CELL_H * 0.28 // travels slightly past, then springs back
+    const targetY = -(spinLength) * CELL_H
+    const overshootY = targetY - CELL_H * 0.22
 
     strip.classList.add('blurring')
     strip.style.transition = `transform ${mainDur}s cubic-bezier(.13,.82,.1,1)`
@@ -1852,65 +1859,106 @@
     await new Promise(r => strip.addEventListener('transitionend', r, { once: true }))
 
     strip.classList.remove('blurring')
-    strip.style.transition = 'transform 0.32s cubic-bezier(.34,1.56,.64,1)'
+    strip.style.transition = 'transform 0.22s cubic-bezier(.34,1.56,.64,1)'
     strip.style.transform = `translateY(${targetY}px)`
     await new Promise(r => strip.addEventListener('transitionend', r, { once: true }))
+
+    return { top: cellEls[spinLength], mid: cellEls[spinLength + 1], bottom: cellEls[spinLength + 2] }
   }
 
-  slotsActionBtn.addEventListener('click', async () => {
+  // Five paylines across the 3×3 grid: the three rows plus both diagonals —
+  // a spin can win on several of these at once, which is the "different
+  // patterns" behavior on top of the classic single center payline.
+  const SLOT_LINES = [
+    { rows: [0, 0, 0], name: 'Top row' },
+    { rows: [1, 1, 1], name: 'Middle row' },
+    { rows: [2, 2, 2], name: 'Bottom row' },
+    { rows: [0, 1, 2], name: 'Diagonal ↘' },
+    { rows: [2, 1, 0], name: 'Diagonal ↗' },
+  ]
+  const ROW_KEY = ['top', 'mid', 'bottom']
+
+  async function runSlotsSpin() {
     const bet = parseFloat(slotsBetInput.value) || 0
-    if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
-    if (bet > balance) { showToast('Not enough coins', 'lose'); return }
+    if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return false }
+    if (bet > balance) { showToast('Not enough coins', 'lose'); if (slotsAutoToggle.checked) slotsAutoToggle.checked = false; return false }
     hapticTap()
     balance -= bet; renderBalance()
     slotsActionBtn.disabled = true
     slotsMachineEl.classList.remove('win-glow', 'mega-glow')
 
-    const results = [slotsRandomSymbol(), slotsRandomSymbol(), slotsRandomSymbol()]
+    // grid[reelIndex] = [topSymbol, midSymbol, bottomSymbol]
+    const grid = [0, 1, 2].map(() => [slotsRandomSymbol(), slotsRandomSymbol(), slotsRandomSymbol()])
     const strips = slotsReelsEl.querySelectorAll('.slot-strip')
     const reels = slotsReelsEl.querySelectorAll('.slot-reel')
-    const anticipate = results[0].sym === results[1].sym // build suspense for reel 3
+    const anticipate = grid[0][1].sym === grid[1][1].sym // middle row already matching on first two reels
 
-    // All three reels start spinning at the same instant; only how long each
-    // one takes to stop differs — reel 1 stops first, then 2, then 3.
-    const reel3Dur = anticipate ? 2.3 : 1.5
-    if (anticipate) setTimeout(() => reels[2].classList.add('anticipating'), 1050)
+    // faster than before, all three still start at the same instant
+    const reel3Dur = anticipate ? 0.95 : 0.7
+    if (anticipate) setTimeout(() => reels[2].classList.add('anticipating'), 500)
 
-    await Promise.all([
-      spinReel(strips[0], results[0].sym, 0.9),
-      spinReel(strips[1], results[1].sym, 1.2),
-      spinReel(strips[2], results[2].sym, reel3Dur),
+    const cellsPerReel = await Promise.all([
+      spinReel(strips[0], grid[0], 0.45),
+      spinReel(strips[1], grid[1], 0.58),
+      spinReel(strips[2], grid[2], reel3Dur),
     ])
     reels[2].classList.remove('anticipating')
 
-    const [a, b, c] = results.map(r => r.sym)
-    let mult = 0
-    if (a === b && b === c) {
-      mult = results[0].pay3 * HOUSE_EDGE
-    } else if (a === b || b === c || a === c) {
-      const matchSym = a === b ? results[0] : (b === c ? results[1] : results[0])
-      mult = matchSym.pay2 * HOUSE_EDGE
+    let totalMult = 0
+    const winningCells = new Set()
+    for (const line of SLOT_LINES) {
+      const syms = line.rows.map((row, reelIdx) => grid[reelIdx][row])
+      const [a, b, c] = syms
+      let lineMult = 0
+      if (a.sym === b.sym && b.sym === c.sym) {
+        lineMult = a.pay3 * HOUSE_EDGE
+      } else if (a.sym === b.sym || b.sym === c.sym || a.sym === c.sym) {
+        const matchSym = a.sym === b.sym ? a : (b.sym === c.sym ? b : a)
+        lineMult = matchSym.pay2 * HOUSE_EDGE
+      }
+      if (lineMult > 0) {
+        totalMult += lineMult
+        line.rows.forEach((row, reelIdx) => winningCells.add(cellsPerReel[reelIdx][ROW_KEY[row]]))
+      }
     }
-    const payout = Math.floor(bet * mult)
+    const payout = Math.floor(bet * totalMult)
 
     if (payout > 0) {
       balance += payout
-      const mega = mult >= 20
-      const bigWin = mult >= 8
-      showToast(`${a}${b}${c} — +${payout} coins`, 'win', bigWin)
-      celebrateWin(mult)
+      const mega = totalMult >= 20
+      const bigWin = totalMult >= 8
+      showToast(`+${payout} coins`, 'win', bigWin)
+      celebrateWin(totalMult)
       slotsMachineEl.classList.add(mega ? 'mega-glow' : 'win-glow')
-      strips.forEach(s => s.children[1]?.classList.add('win-cell'))
-      slotsShowBanner(mega ? `🎉 MEGA WIN ×${mult.toFixed(1)}` : bigWin ? `BIG WIN +${payout}` : `+${payout} coins`)
+      winningCells.forEach(el => el.classList.add('win-cell'))
+      slotsShowBanner(mega ? `🎉 MEGA WIN ×${totalMult.toFixed(1)}` : bigWin ? `BIG WIN +${payout}` : `+${payout} coins`)
       if (mega) burstConfetti(36)
-      setTimeout(() => strips.forEach(s => s.children[1]?.classList.remove('win-cell')), 1500)
+      setTimeout(() => winningCells.forEach(el => el.classList.remove('win-cell')), 1300)
     } else {
-      showToast(`${a}${b}${c} — lost ${bet} coins`, 'lose')
+      showToast(`Lost ${bet} coins`, 'lose')
       reactLoss()
     }
     renderBalance(); await saveBalance()
     slotsActionBtn.disabled = false
+    return true
+  }
+
+  slotsActionBtn.addEventListener('click', () => { if (!slotsActionBtn.disabled) runSlotsSpin() })
+
+  slotsAutoToggle.addEventListener('change', async () => {
+    if (!slotsAutoToggle.checked || slotsAutoRunning) return
+    slotsAutoRunning = true
+    slotsActionBtn.textContent = 'Auto-spinning…'
+    while (slotsAutoToggle.checked) {
+      const ok = await runSlotsSpin()
+      if (!ok) break
+      await new Promise(r => setTimeout(r, 350))
+    }
+    slotsAutoRunning = false
+    slotsAutoToggle.checked = false
+    slotsActionBtn.textContent = 'Spin'
   })
+
   buildSlotsPaytable()
   buildSlotsReels()
 
@@ -1968,25 +2016,49 @@
   // Redraws the line/area graph from the sampled points and repositions the
   // rocket + trailing particles at the curve's current head — this is what
   // gives crash its climbing-chart feel instead of a bare number ticking up.
+  const CRASH_Y_TOP_MULT = 50   // matches the "50×" label at the top of the ladder
+  const CRASH_PX_PER_SEC = 55   // fixed horizontal speed — this is what stops the graph from rescaling/warping every frame
+
+  function crashMultToY(mult) {
+    const clamped = Math.max(1, Math.min(CRASH_Y_TOP_MULT, mult))
+    const norm = Math.log(clamped) / Math.log(CRASH_Y_TOP_MULT)
+    return CRASH_H - 20 - norm * (CRASH_H - 40)
+  }
+
   function crashRenderGraph() {
     if (crashPoints.length < 2) return
-    const maxT = Math.max(1, crashPoints[crashPoints.length - 1].t)
-    const maxMult = Math.max(2, crashPoints[crashPoints.length - 1].mult * 1.15)
-    const toXY = (p) => {
-      const x = (p.t / maxT) * (CRASH_W - 40) + 10
-      // log-ish scale so early growth isn't squashed against the floor
-      const norm = Math.log(p.mult) / Math.log(maxMult)
-      const y = CRASH_H - 20 - norm * (CRASH_H - 50)
-      return [x, y]
-    }
+
+    // Fixed-rate x position, then pan the whole view left once the line
+    // nears the right edge — panning is a uniform shift so it stays smooth,
+    // unlike rescaling the axis (which reshapes every previously drawn point).
+    const rawX = (t) => 10 + t * CRASH_PX_PER_SEC
+    const latestRawX = rawX(crashPoints[crashPoints.length - 1].t)
+    const panOffset = Math.max(0, latestRawX - (CRASH_W - 15))
+
     let d = ''
     crashPoints.forEach((p, i) => {
-      const [x, y] = toXY(p)
+      const x = rawX(p.t) - panOffset
+      const y = crashMultToY(p.mult)
       d += (i === 0 ? `M${x},${y}` : ` L${x},${y}`)
     })
     crashLinePathEl.setAttribute('d', d)
-    const [lastX, lastY] = toXY(crashPoints[crashPoints.length - 1])
-    crashFillPathEl.setAttribute('d', `${d} L${lastX},${CRASH_H} L10,${CRASH_H} Z`)
+
+    const last = crashPoints[crashPoints.length - 1]
+    const lastX = rawX(last.t) - panOffset
+    const lastY = crashMultToY(last.mult)
+
+    // rocket angle follows the actual slope of the last little stretch of
+    // line instead of a fixed diagonal, so it reads as "riding" the curve
+    let angleDeg = -45
+    if (crashPoints.length > 3) {
+      const prev = crashPoints[crashPoints.length - 4]
+      const prevX = rawX(prev.t) - panOffset
+      const prevY = crashMultToY(prev.mult)
+      const rad = Math.atan2(lastY - prevY, lastX - prevX)
+      angleDeg = (rad * 180 / Math.PI) + 90
+      angleDeg = Math.max(-80, Math.min(-10, angleDeg)) // keep it pointing generally up-right, never flipping
+    }
+    crashRocketEl.style.transform = `translate(-50%, -50%) rotate(${angleDeg}deg)`
 
     // lastX/lastY are in the SVG's 400×280 viewBox space, not real pixels —
     // the SVG stretches (preserveAspectRatio="none") to fill whatever the
