@@ -595,17 +595,31 @@
   .crash-status { color: var(--ink-dim); font-size: 0.82rem; font-weight: 700; margin-top: 10px; min-height: 20px; }
   .crash-target-row {
     position: relative; z-index: 3; display: flex; align-items: center; justify-content: center;
-    gap: 8px; margin-top: 4px; pointer-events: auto;
+    gap: 10px; margin-top: 4px; pointer-events: auto;
   }
-  .crash-target-row label { font-size: 0.7rem; color: var(--ink-dim); font-weight: 700; }
-  .crash-target-row input {
+  .crash-switch { position: relative; display: inline-block; width: 38px; height: 22px; cursor: pointer; }
+  .crash-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .crash-switch .track {
+    position: absolute; inset: 0; background: var(--bg-tile); border: 1px solid var(--line);
+    border-radius: 100px; transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .crash-switch .thumb {
+    position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--ink-dim); transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .crash-switch input:checked + .track { background: var(--cyan-dim); border-color: var(--cyan); }
+  .crash-switch input:checked + .track .thumb { transform: translateX(16px); background: var(--cyan); }
+  .crash-target-row label.crash-target-label { font-size: 0.7rem; color: var(--ink-dim); font-weight: 700; }
+  .crash-target-row input[type="number"] {
     width: 64px; background: rgba(6,10,18,0.6); border: 1px solid var(--line); border-radius: 8px;
     color: var(--ink); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.82rem;
-    text-align: center; padding: 5px 4px; outline: none;
+    text-align: center; padding: 5px 4px; outline: none; transition: opacity 0.2s ease;
   }
+  .crash-target-row input[type="number"]:disabled { opacity: 0.35; }
   .crash-rocket {
-    position: absolute; font-size: 1.5rem; left: 8%; bottom: 12%; z-index: 3;
-    transform: translate(0, 0) rotate(-45deg); transition: transform 0.1s linear; filter: drop-shadow(0 0 10px rgba(0,230,118,0.7));
+    position: absolute; font-size: 1.5rem; left: 8%; top: 86%; z-index: 3;
+    transform: translate(-50%, -50%) rotate(45deg); transition: left 0.12s linear, top 0.12s linear;
+    filter: drop-shadow(0 0 10px rgba(0,230,118,0.7));
   }
   .crash-particle {
     position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--gold);
@@ -910,8 +924,12 @@
         </div>
         <div class="crash-status" id="crashStatus">Place a bet to start a round</div>
         <div class="crash-target-row">
-          <label for="crashTargetInput">Auto cashout at</label>
-          <input type="number" id="crashTargetInput" value="2.00" step="0.1" min="1.01">
+          <label class="crash-switch">
+            <input type="checkbox" id="crashAutoToggle">
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+          <label class="crash-target-label" for="crashTargetInput">Auto cashout at</label>
+          <input type="number" id="crashTargetInput" value="2.00" step="0.1" min="1.01" disabled>
         </div>
       </div>
     </div>
@@ -1094,6 +1112,16 @@
   document.querySelectorAll('.game-shortcut, .hero-btn[data-goto]').forEach(el => {
     el.addEventListener('click', () => { hapticTap(); switchTab(el.dataset.goto) })
   })
+  // Desktop mice only send vertical wheel deltas — redirect that into
+  // horizontal scroll so the game tabs can be scrolled through without
+  // needing to click-drag or use a trackpad's native horizontal gesture.
+  const tabstripEl = document.getElementById('tabstrip')
+  tabstripEl.addEventListener('wheel', (e) => {
+    if (e.deltaY === 0) return
+    e.preventDefault()
+    tabstripEl.scrollLeft += e.deltaY
+  }, { passive: false })
+
   function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab))
     document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab))
@@ -1897,6 +1925,10 @@
   const crashFillPathEl = document.getElementById('crashFillPath')
   const crashBetInput = document.getElementById('crashBetInput')
   const crashTargetInput = document.getElementById('crashTargetInput')
+  const crashAutoToggle = document.getElementById('crashAutoToggle')
+  crashAutoToggle.addEventListener('change', () => {
+    crashTargetInput.disabled = !crashAutoToggle.checked
+  })
   const crashBetBtn = document.getElementById('crashBetBtn')
   const crashCashoutBtn = document.getElementById('crashCashoutBtn')
   const crashHistoryEl = document.getElementById('crashHistory')
@@ -1922,10 +1954,10 @@
     ).join('')
   }
 
-  function crashSpawnParticle(x, y) {
+  function crashSpawnParticle(xPct, yPct) {
     const p = document.createElement('div')
     p.className = 'crash-particle'
-    p.style.left = x + 'px'; p.style.top = y + 'px'
+    p.style.left = xPct + '%'; p.style.top = yPct + '%'
     const angle = Math.PI + (Math.random() - 0.5) * 1.2
     p.style.setProperty('--pdx', Math.cos(angle) * 26 + 'px')
     p.style.setProperty('--pdy', Math.sin(angle) * 26 + 'px')
@@ -1956,9 +1988,16 @@
     const [lastX, lastY] = toXY(crashPoints[crashPoints.length - 1])
     crashFillPathEl.setAttribute('d', `${d} L${lastX},${CRASH_H} L10,${CRASH_H} Z`)
 
-    crashRocketEl.style.left = lastX + 'px'
-    crashRocketEl.style.top = lastY + 'px'
-    if (Math.random() < 0.35) crashSpawnParticle(lastX - 8, lastY + 6)
+    // lastX/lastY are in the SVG's 400×280 viewBox space, not real pixels —
+    // the SVG stretches (preserveAspectRatio="none") to fill whatever the
+    // actual stage size is, so the rocket (a normal DOM element, not part of
+    // the SVG) has to be positioned with the same percentage, not raw px,
+    // or it drifts away from the line and off the edge of narrower screens.
+    const xPct = (lastX / CRASH_W) * 100
+    const yPct = (lastY / CRASH_H) * 100
+    crashRocketEl.style.left = xPct + '%'
+    crashRocketEl.style.top = yPct + '%'
+    if (Math.random() < 0.35) crashSpawnParticle(xPct - 2, yPct + 2)
   }
 
   function crashRiskClass(mult) {
@@ -1983,10 +2022,9 @@
     crashPoints.push({ t: elapsed, mult })
     crashRenderGraph()
 
-    // auto cash-out: if the player set a target and we've reached it, cash
-    // out automatically rather than requiring a manual tap in time
+    // auto cash-out: only fires if the switch is on and we've reached the target
     const target = parseFloat(crashTargetInput.value)
-    if (crashCashedAt == null && target && target >= 1.01 && mult >= target) {
+    if (crashAutoToggle.checked && crashCashedAt == null && target && target >= 1.01 && mult >= target) {
       crashCashout()
     }
 
