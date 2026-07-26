@@ -1773,12 +1773,12 @@
 
   // ================= SLOTS =================
   const SLOT_SYMBOLS = [
-    { sym: '🍒', weight: 34, pay3: 3,  pay2: 1 },
-    { sym: '🍋', weight: 26, pay3: 5,  pay2: 0 },
-    { sym: '🔔', weight: 18, pay3: 8,  pay2: 0 },
-    { sym: '🍀', weight: 12, pay3: 15, pay2: 0 },
-    { sym: '💎', weight: 7,  pay3: 25, pay2: 0 },
-    { sym: '7️⃣', weight: 3,  pay3: 50, pay2: 0 },
+    { sym: '🍒', weight: 34, pay3: 2 },
+    { sym: '🍋', weight: 26, pay3: 3 },
+    { sym: '🔔', weight: 18, pay3: 5 },
+    { sym: '🍀', weight: 12, pay3: 9 },
+    { sym: '💎', weight: 7,  pay3: 15 },
+    { sym: '7️⃣', weight: 3,  pay3: 30 },
   ]
   const SLOT_TOTAL_WEIGHT = SLOT_SYMBOLS.reduce((s, x) => s + x.weight, 0)
   const CELL_H = 56
@@ -1909,12 +1909,13 @@
     for (const line of SLOT_LINES) {
       const syms = line.rows.map((row, reelIdx) => grid[reelIdx][row])
       const [a, b, c] = syms
+      // Only a genuine 3-in-a-row pays. Paying on any 2-of-3 match too was
+      // the bug — with 5 lines checked every spin and cherries being the
+      // most common symbol, a pair somewhere was landing almost every spin,
+      // which is what made it feel like a win every time.
       let lineMult = 0
       if (a.sym === b.sym && b.sym === c.sym) {
         lineMult = a.pay3 * HOUSE_EDGE
-      } else if (a.sym === b.sym || b.sym === c.sym || a.sym === c.sym) {
-        const matchSym = a.sym === b.sym ? a : (b.sym === c.sym ? b : a)
-        lineMult = matchSym.pay2 * HOUSE_EDGE
       }
       if (lineMult > 0) {
         totalMult += lineMult
