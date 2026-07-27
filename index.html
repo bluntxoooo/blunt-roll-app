@@ -162,7 +162,6 @@
   .game-shortcut[data-goto="plinko"] { --tile-glow: rgba(255,201,61,0.2); }
   .game-shortcut[data-goto="dice"] { --tile-glow: rgba(255,71,87,0.18); }
   .game-shortcut[data-goto="flip"] { --tile-glow: rgba(255,201,61,0.22); }
-  .game-shortcut[data-goto="crash"] { --tile-glow: rgba(167,139,250,0.26); }
 
   /* ---- Shared game controls ---- */
   .controls-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
@@ -351,53 +350,6 @@
   }
   .risk-row button.active { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); }
 
-  /* ---- Crash ---- */
-  .crash-stage {
-    position: relative; height: 320px; border-radius: 16px; overflow: hidden; margin-bottom: 14px;
-    background:
-      radial-gradient(ellipse at 20% 90%, rgba(88,60,150,0.35), transparent 60%),
-      radial-gradient(ellipse at 80% 100%, rgba(0,80,150,0.25), transparent 55%),
-      linear-gradient(180deg, #0a0e1f, #050810 70%);
-    border: 1px solid var(--line);
-  }
-  .crash-stars { position: absolute; inset: 0; opacity: 0.6; }
-  .crash-stars span {
-    position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%; opacity: 0.5;
-  }
-  .crash-history { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 6px; z-index: 3; overflow-x: auto; scrollbar-width: none; }
-  .crash-history::-webkit-scrollbar { display: none; }
-  .crash-history .chip {
-    flex-shrink: 0; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.72rem;
-    padding: 4px 8px; border-radius: 100px; background: var(--bg-tile); border: 1px solid var(--line); color: var(--ink-dim);
-  }
-  .crash-history .chip.win { color: var(--cyan); border-color: rgba(0,230,118,0.3); }
-  .crash-history .chip.big { color: var(--gold); border-color: rgba(255,201,61,0.4); }
-  .crash-mult {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%);
-    font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 3rem; z-index: 3;
-    color: var(--ink); text-shadow: 0 0 24px rgba(255,255,255,0.15); transition: color 0.15s ease;
-  }
-  .crash-mult.rising { color: var(--cyan); text-shadow: 0 0 28px rgba(0,230,118,0.5); }
-  .crash-mult.busted { color: var(--red); text-shadow: 0 0 28px rgba(255,71,87,0.6); }
-  .crash-status {
-    position: absolute; top: calc(50% + 34px); left: 50%; transform: translateX(-50%);
-    font-size: 0.8rem; font-weight: 700; color: var(--ink-dim); z-index: 3; letter-spacing: 0.03em; text-transform: uppercase;
-  }
-  .crash-svg { position: absolute; inset: 0; z-index: 2; }
-  .crash-rocket {
-    position: absolute; font-size: 1.6rem; z-index: 3; transform: translate(-50%, 50%) rotate(-40deg);
-    filter: drop-shadow(0 0 8px rgba(0,230,118,0.6)); transition: left 0.05s linear, bottom 0.05s linear;
-  }
-  .crash-rocket.busted { filter: drop-shadow(0 0 10px rgba(255,71,87,0.7)); }
-  .auto-row { display: flex; gap: 8px; margin-bottom: 14px; }
-  .auto-row .bet-row { flex: 1; margin-bottom: 0; }
-  .crash-quickmult { display: flex; gap: 6px; margin-bottom: 14px; }
-  .crash-quickmult button {
-    flex: 1; background: var(--bg-raised); border: 1px solid var(--line); color: var(--ink-dim);
-    border-radius: 8px; padding: 8px; font-weight: 700; font-size: 0.78rem; cursor: pointer; font-family: 'JetBrains Mono', monospace;
-  }
-  .crash-quickmult button:active { border-color: var(--purple); color: var(--purple); }
-
   /* ---- Leaderboard ---- */
   .lb-list { display: flex; flex-direction: column; gap: 8px; }
   .lb-empty { color: var(--ink-dim); font-size: 0.85rem; text-align: center; padding: 24px 0; }
@@ -514,7 +466,6 @@
 
 <div class="tabstrip" id="tabstrip">
   <button class="tab-btn active" data-tab="home">🏠 Home</button>
-  <button class="tab-btn" data-tab="crash">🚀 Crash</button>
   <button class="tab-btn" data-tab="mines">💎 Mines</button>
   <button class="tab-btn" data-tab="plinko">🔺 Plinko</button>
   <button class="tab-btn" data-tab="dice">🎲 Dice</button>
@@ -533,7 +484,7 @@
       <div class="hero-title">Blunt Roll</div>
       <div class="hero-sub">Chat to earn coins, claim daily, and gamble them across the games below. All for fun — nothing here is real money.</div>
       <div class="hero-actions">
-        <button class="hero-btn primary" data-goto="crash">Play now</button>
+        <button class="hero-btn primary" data-goto="mines">Play now</button>
         <button class="hero-btn ghost" data-goto="leaderboard">Leaderboard</button>
       </div>
     </div>
@@ -551,53 +502,13 @@
     </div>
     <div class="section-label">Games</div>
     <div class="games-grid">
-      <div class="game-shortcut" data-goto="crash"><span class="g-tag">New</span><div class="g-icon">🚀</div><div class="g-name">Crash</div></div>
-      <div class="game-shortcut" data-goto="blackjack"><div class="g-icon">♠️</div><div class="g-name">Blackjack</div></div>
+      <div class="game-shortcut" data-goto="blackjack"><span class="g-tag">New</span><div class="g-icon">♠️</div><div class="g-name">Blackjack</div></div>
       <div class="game-shortcut" data-goto="mines"><div class="g-icon">💎</div><div class="g-name">Mines</div></div>
       <div class="game-shortcut" data-goto="plinko"><div class="g-icon">🔺</div><div class="g-name">Plinko</div></div>
       <div class="game-shortcut" data-goto="dice"><div class="g-icon">🎲</div><div class="g-name">Dice</div></div>
       <div class="game-shortcut" data-goto="keno"><div class="g-icon">#️⃣</div><div class="g-name">Keno</div></div>
       <div class="game-shortcut" data-goto="flip"><div class="g-icon">🪙</div><div class="g-name">Flip</div></div>
     </div>
-  </div>
-
-  <!-- ===== CRASH ===== -->
-  <div class="panel" id="panel-crash">
-    <div class="crash-stage" id="crashStage">
-      <div class="crash-stars" id="crashStars"></div>
-      <svg class="crash-svg" id="crashSvg" viewBox="0 0 400 320" preserveAspectRatio="none">
-        <path id="crashPath" d="M 0 320 L 0 320" fill="none" stroke="#f2f4f8" stroke-width="2.5" />
-      </svg>
-      <div class="crash-history" id="crashHistory"></div>
-      <div class="crash-mult" id="crashMultDisplay">1.00×</div>
-      <div class="crash-status" id="crashStatus">Place your bet</div>
-      <div class="crash-rocket" id="crashRocket" style="left:0%; bottom:0%;">🚀</div>
-    </div>
-    <div class="crash-quickmult">
-      <button data-auto="1.5">1.5×</button>
-      <button data-auto="2">2×</button>
-      <button data-auto="3">3×</button>
-      <button data-auto="5">5×</button>
-      <button data-auto="10">10×</button>
-    </div>
-    <div class="bet-row">
-      <div style="flex:1;">
-        <div class="bet-label">Bet amount</div>
-        <input type="number" class="bet-input" id="crashBetInput" value="10" min="1">
-      </div>
-      <div class="bet-quick">
-        <button data-mult="0.5" data-target="crash">½</button>
-        <button data-mult="2" data-target="crash">2×</button>
-        <button data-max="1" data-target="crash">Max</button>
-      </div>
-    </div>
-    <div class="bet-row">
-      <div style="flex:1;">
-        <div class="bet-label">Auto cash out at</div>
-        <input type="number" class="bet-input" id="crashAutoInput" value="2.00" min="1.01" step="0.01">
-      </div>
-    </div>
-    <button class="action-btn start" id="crashActionBtn">Bet</button>
   </div>
 
   <!-- ===== MINES ===== -->
@@ -861,47 +772,6 @@
     hapticError()
     flash('lose')
     shakeScreen()
-  }
-
-  // ---------------- Sound: tiny synthesized beeps, no audio files needed ----------------
-  let audioCtx = null
-  function getAudioCtx() {
-    if (!audioCtx) {
-      const Ctx = window.AudioContext || window.webkitAudioContext
-      if (Ctx) audioCtx = new Ctx()
-    }
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume()
-    return audioCtx
-  }
-  function beep(freq, dur, type = 'sine', gainPeak = 0.12, delay = 0) {
-    const ctx = getAudioCtx()
-    if (!ctx) return
-    const t0 = ctx.currentTime + delay
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.type = type
-    osc.frequency.setValueAtTime(freq, t0)
-    gain.gain.setValueAtTime(0.0001, t0)
-    gain.gain.exponentialRampToValueAtTime(gainPeak, t0 + 0.02)
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur)
-    osc.connect(gain); gain.connect(ctx.destination)
-    osc.start(t0); osc.stop(t0 + dur + 0.02)
-  }
-  function sfxTick() { beep(880, 0.05, 'square', 0.05) }
-  function sfxCashout() { beep(660, 0.09, 'sine', 0.14); beep(990, 0.14, 'sine', 0.14, 0.08) }
-  function sfxCrash() {
-    const ctx = getAudioCtx()
-    if (!ctx) return
-    const t0 = ctx.currentTime
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.type = 'sawtooth'
-    osc.frequency.setValueAtTime(220, t0)
-    osc.frequency.exponentialRampToValueAtTime(40, t0 + 0.5)
-    gain.gain.setValueAtTime(0.18, t0)
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.55)
-    osc.connect(gain); gain.connect(ctx.destination)
-    osc.start(t0); osc.stop(t0 + 0.6)
   }
 
   async function loadBalance() {
@@ -1327,12 +1197,9 @@
     // Walk the ball down row by row, biasing its left/right jitter so it
     // actually ends up over the winning bucket — this is the visible "fall".
     const rows = plinkoPegsEl.querySelectorAll('.peg-row')
-    const numBuckets = PLINKO_ROWS + 1
-    // Buckets are laid out as `numBuckets` equal flex cells, so bucket i's
-    // visual center sits at (i + 0.5) / numBuckets — NOT i / PLINKO_ROWS.
-    // Using the wrong denominator was why the ball used to land next to,
-    // rather than inside, the bucket that actually got scored.
-    const finalLeftPct = ((targetBucket + 0.5) / numBuckets) * 100
+    const boardRect = plinkoPegsEl.getBoundingClientRect()
+    const boardWidth = boardRect.width || 300
+    const finalLeftPct = (targetBucket / PLINKO_ROWS) * 100
 
     plinkoBallEl.style.display = 'block'
     plinkoBallEl.classList.remove('landed')
@@ -1363,7 +1230,7 @@
       await new Promise(r => setTimeout(r, 130))
     }
 
-    // final settle exactly on the bucket's true center, no wobble left over
+    // final settle into the bucket
     const bucketRow = plinkoBucketsEl
     plinkoBallEl.style.top = (bucketRow.offsetTop + 6) + 'px'
     plinkoBallEl.style.left = finalLeftPct + '%'
@@ -1406,214 +1273,6 @@
     }, 1200)
   })
   buildPlinkoBoard()
-
-  // ================= CRASH =================
-  const crashStage = document.getElementById('crashStage')
-  const crashPath = document.getElementById('crashPath')
-  const crashMultDisplay = document.getElementById('crashMultDisplay')
-  const crashStatus = document.getElementById('crashStatus')
-  const crashRocket = document.getElementById('crashRocket')
-  const crashHistoryEl = document.getElementById('crashHistory')
-  const crashStarsEl = document.getElementById('crashStars')
-  const crashBetInput = document.getElementById('crashBetInput')
-  const crashAutoInput = document.getElementById('crashAutoInput')
-  const crashActionBtn = document.getElementById('crashActionBtn')
-
-  let crashState = 'idle' // idle -> running -> crashed
-  let crashRAF = null
-  let crashStartTime = 0
-  let crashPoint = 1
-  let crashCurrentMult = 1
-  let crashBet = 0
-  let crashPlaying = false   // true once a bet is placed for this round
-  let crashCashedOut = false
-  let crashHistory = []
-
-  // scatter some background stars once
-  ;(function seedStars() {
-    let html = ''
-    for (let i = 0; i < 40; i++) {
-      const x = Math.random() * 100, y = Math.random() * 100
-      const s = Math.random() * 1.6 + 0.6
-      html += `<span style="left:${x}%; top:${y}%; width:${s}px; height:${s}px;"></span>`
-    }
-    crashStarsEl.innerHTML = html
-  })()
-
-  // Growth curve: smooth exponential ramp, same shape whether it crashes at
-  // 1.2x or 50x — matches the reference's "shoots up then crashes" feel.
-  function crashMultAtTime(t) { return Math.max(1, Math.exp(t * 0.16)) }
-  function crashTimeForMult(m) { return Math.log(m) / 0.16 }
-
-  // Provably-fair-style crash point sample (classic 1/(1-p) distribution,
-  // clipped so the house keeps its edge and instant-crashes stay rare).
-  function sampleCrashPoint() {
-    const houseEdgeRoll = Math.random()
-    if (houseEdgeRoll < 0.03) return 1.00 // instant bust, like a real crash game
-    const r = Math.random()
-    const raw = HOUSE_EDGE / (1 - r)
-    return Math.max(1.01, Math.min(raw, 1000))
-  }
-
-  function crashChip(mult) {
-    const chip = document.createElement('div')
-    chip.className = 'chip' + (mult >= 10 ? ' big' : mult >= 2 ? ' win' : '')
-    chip.textContent = mult.toFixed(2) + 'x'
-    return chip
-  }
-  function pushCrashHistory(mult) {
-    crashHistory.unshift(mult)
-    crashHistory = crashHistory.slice(0, 12)
-    crashHistoryEl.innerHTML = ''
-    crashHistory.forEach(m => crashHistoryEl.appendChild(crashChip(m)))
-  }
-
-  function crashDrawPath(mult) {
-    // map (time-progress, multiplier) onto the 400x320 viewBox, curve rising
-    // left-to-right like the reference screenshots.
-    const w = 400, h = 320
-    const maxMultForView = Math.max(2, mult * 1.15)
-    const steps = 60
-    let d = `M 0 ${h}`
-    for (let i = 0; i <= steps; i++) {
-      const frac = i / steps
-      const m = 1 + (mult - 1) * frac
-      const x = frac * w
-      const y = h - (Math.log(m) / Math.log(maxMultForView)) * h
-      d += ` L ${x.toFixed(1)} ${Math.max(6, y).toFixed(1)}`
-    }
-    crashPath.setAttribute('d', d)
-    const lastX = w, lastY = Math.max(6, h - (Math.log(mult) / Math.log(maxMultForView)) * h)
-    crashRocket.style.left = (lastX / w * 100) + '%'
-    crashRocket.style.bottom = ((h - lastY) / h * 100) + '%'
-  }
-
-  function resetCrashVisual() {
-    crashPath.setAttribute('d', 'M 0 320 L 0 320')
-    crashRocket.style.left = '0%'
-    crashRocket.style.bottom = '0%'
-    crashRocket.classList.remove('busted')
-    crashMultDisplay.textContent = '1.00×'
-    crashMultDisplay.classList.remove('rising', 'busted')
-  }
-
-  function setCrashBtn(state) {
-    if (state === 'bet') { crashActionBtn.textContent = 'Bet'; crashActionBtn.className = 'action-btn start'; crashActionBtn.disabled = false }
-    else if (state === 'waiting') { crashActionBtn.textContent = 'Round in progress…'; crashActionBtn.className = 'action-btn start'; crashActionBtn.disabled = true }
-    else if (state === 'cashout') { crashActionBtn.textContent = 'Cash Out'; crashActionBtn.className = 'action-btn cashout'; crashActionBtn.disabled = false }
-    else if (state === 'cashed') { crashActionBtn.textContent = 'Cashed out — wait for next round'; crashActionBtn.className = 'action-btn start'; crashActionBtn.disabled = true }
-    else if (state === 'queued') { crashActionBtn.textContent = 'Bet placed — round starting…'; crashActionBtn.className = 'action-btn start'; crashActionBtn.disabled = true }
-  }
-
-  async function crashRunRound() {
-    crashState = 'running'
-    crashPoint = sampleCrashPoint()
-    crashCurrentMult = 1
-    crashStartTime = performance.now()
-    crashStatus.textContent = crashPlaying ? 'In flight' : 'Round in progress'
-    crashMultDisplay.classList.add('rising')
-    crashRocket.classList.remove('busted')
-    if (crashPlaying && !crashCashedOut) setCrashBtn('cashout')
-    else if (!crashPlaying) setCrashBtn('waiting')
-
-    return new Promise(resolve => {
-      function frame(now) {
-        const t = (now - crashStartTime) / 1000
-        crashCurrentMult = crashMultAtTime(t)
-        if (crashCurrentMult >= crashPoint) {
-          crashCurrentMult = crashPoint
-          crashMultDisplay.textContent = crashCurrentMult.toFixed(2) + '×'
-          crashDrawPath(crashCurrentMult)
-          crashBust()
-          resolve()
-          return
-        }
-        crashMultDisplay.textContent = crashCurrentMult.toFixed(2) + '×'
-        crashDrawPath(crashCurrentMult)
-
-        // auto cash-out check
-        if (crashPlaying && !crashCashedOut) {
-          const autoAt = parseFloat(crashAutoInput.value)
-          if (autoAt && autoAt > 1 && crashCurrentMult >= autoAt) {
-            crashCashOut()
-          }
-        }
-        crashRAF = requestAnimationFrame(frame)
-      }
-      crashRAF = requestAnimationFrame(frame)
-    })
-  }
-
-  function crashBust() {
-    cancelAnimationFrame(crashRAF)
-    crashState = 'crashed'
-    crashMultDisplay.classList.remove('rising')
-    crashMultDisplay.classList.add('busted')
-    crashRocket.classList.add('busted')
-    crashStatus.textContent = 'Busted at ' + crashPoint.toFixed(2) + '×'
-    sfxCrash()
-    hapticError()
-    flash('lose')
-    shakeScreen()
-    pushCrashHistory(crashPoint)
-
-    if (crashPlaying && !crashCashedOut) {
-      showToast(`Busted at ${crashPoint.toFixed(2)}× — lost ${crashBet} coins`, 'lose')
-      crashPlaying = false
-    }
-  }
-
-  function crashCashOut() {
-    if (!crashPlaying || crashCashedOut || crashState !== 'running') return
-    crashCashedOut = true
-    crashPlaying = false
-    const payout = Math.floor(crashBet * crashCurrentMult)
-    balance += payout
-    renderBalance()
-    saveBalance()
-    sfxCashout()
-    showToast(`Cashed out ${crashCurrentMult.toFixed(2)}× — +${payout} coins`, 'win', crashCurrentMult >= 3)
-    celebrateWin(crashCurrentMult)
-    setCrashBtn('cashed')
-  }
-
-  async function crashLoop() {
-    while (true) {
-      resetCrashVisual()
-      crashStatus.textContent = 'Starting in 3…'
-      setCrashBtn(crashPlaying ? 'queued' : 'bet')
-      for (let s = 3; s > 0; s--) {
-        crashStatus.textContent = `Starting in ${s}…`
-        sfxTick()
-        await new Promise(r => setTimeout(r, 700))
-      }
-      crashCashedOut = false
-      await crashRunRound()
-      await new Promise(r => setTimeout(r, 1800))
-      crashPlaying = false
-    }
-  }
-
-  crashActionBtn.addEventListener('click', () => {
-    if (crashState === 'running' && crashPlaying && !crashCashedOut) { crashCashOut(); return }
-    if (crashState !== 'running') {
-      const bet = parseFloat(crashBetInput.value) || 0
-      if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
-      if (bet > balance) { showToast('Not enough coins', 'lose'); return }
-      getAudioCtx()
-      crashBet = bet
-      balance -= bet; renderBalance(); saveBalance()
-      crashPlaying = true
-      crashCashedOut = false
-      setCrashBtn('queued')
-      hapticTap()
-    }
-  })
-  document.querySelectorAll('.crash-quickmult button').forEach(btn => {
-    btn.addEventListener('click', () => { hapticTap(); crashAutoInput.value = btn.dataset.auto })
-  })
-  resetCrashVisual()
-  crashLoop()
 
   // ================= BLACKJACK =================
   const sleep = ms => new Promise(r => setTimeout(r, ms))
