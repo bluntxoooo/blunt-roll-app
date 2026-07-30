@@ -162,6 +162,7 @@
   .game-shortcut[data-goto="plinko"] { --tile-glow: rgba(255,201,61,0.2); }
   .game-shortcut[data-goto="dice"] { --tile-glow: rgba(255,71,87,0.18); }
   .game-shortcut[data-goto="flip"] { --tile-glow: rgba(255,201,61,0.22); }
+  .game-shortcut[data-goto="slots"] { --tile-glow: rgba(255,201,61,0.25); }
 
   /* ---- Shared game controls ---- */
   .controls-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
@@ -452,6 +453,93 @@
   .bj-btn.stand { border-color: var(--gold); color: var(--gold); }
   .bj-btn.double { border-color: var(--purple); color: var(--purple); }
   .bj-btn:disabled { opacity: 0.35; pointer-events: none; }
+
+  /* ---- Slots ---- */
+  .slots-machine {
+    background: linear-gradient(160deg, var(--bg-tile), var(--bg-raised));
+    border: 1px solid var(--line); border-radius: 16px; padding: 18px;
+    margin-bottom: 12px; position: relative; overflow: hidden;
+  }
+  .slots-machine::before {
+    content: ''; position: absolute; top: -30%; left: 50%; transform: translateX(-50%);
+    width: 220px; height: 140px; background: radial-gradient(circle, rgba(255,201,61,0.14), transparent 70%);
+  }
+  .slots-machine.jackpot-flash::before { animation: slotsJackpotGlow 0.9s ease; }
+  @keyframes slotsJackpotGlow { 0%,100% { opacity: 1; } 50% { opacity: 1; width: 320px; height: 220px; background: radial-gradient(circle, rgba(255,201,61,0.4), transparent 70%); } }
+  .slots-reels { display: flex; gap: 8px; position: relative; z-index: 1; transform-origin: center; }
+  .slots-reel {
+    flex: 1; background: var(--navy-deep); border: 1px solid var(--line); border-radius: 12px;
+    height: 198px; overflow: hidden; position: relative;
+    box-shadow: inset 0 4px 10px rgba(0,0,0,0.4);
+    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .slots-reel::before, .slots-reel::after {
+    content: ''; position: absolute; left: 0; right: 0; height: 22px; z-index: 2; pointer-events: none;
+  }
+  .slots-reel::before { top: 0; background: linear-gradient(180deg, var(--navy-deep), transparent); }
+  .slots-reel::after { bottom: 0; background: linear-gradient(0deg, var(--navy-deep), transparent); }
+  .slots-reel-strip {
+    display: flex; flex-direction: column; align-items: center;
+    position: absolute; left: 0; right: 0; top: 0;
+    transition: top 0.32s cubic-bezier(.16,1.42,.42,1);
+  }
+  .slots-symbol {
+    height: 66px; display: flex; align-items: center; justify-content: center;
+    font-size: 2.1rem; flex-shrink: 0; transition: filter 0.15s ease, transform 0.15s ease;
+  }
+  .slots-reel.spinning { box-shadow: inset 0 4px 10px rgba(0,0,0,0.4), inset 0 0 18px rgba(0,230,118,0.15); }
+  .slots-reel.spinning .slots-reel-strip { animation: slotsSpin 0.1s linear infinite; }
+  .slots-reel.spinning .slots-symbol { filter: blur(3px) brightness(1.3); }
+  .slots-reel.settling { animation: slotsReelSettle 0.26s ease-out; }
+  @keyframes slotsReelSettle { 0% { transform: scaleY(1); } 45% { transform: scaleY(0.92); } 75% { transform: scaleY(1.03); } 100% { transform: scaleY(1); } }
+  .slots-reel.win-glow {
+    border-color: var(--cyan);
+    animation: slotsWinPulse 0.65s ease-in-out 3;
+  }
+  .slots-reel.win-glow.big-win { border-color: var(--gold); animation: slotsWinPulseGold 0.55s ease-in-out 5; }
+  @keyframes slotsWinPulse {
+    0%,100% { box-shadow: inset 0 4px 10px rgba(0,0,0,0.4), 0 0 0 rgba(0,230,118,0); }
+    50% { box-shadow: inset 0 4px 10px rgba(0,0,0,0.4), 0 0 24px rgba(0,230,118,0.85); }
+  }
+  @keyframes slotsWinPulseGold {
+    0%,100% { box-shadow: inset 0 4px 10px rgba(0,0,0,0.4), 0 0 0 rgba(240,185,61,0); transform: scale(1); }
+    50% { box-shadow: inset 0 4px 10px rgba(0,0,0,0.4), 0 0 30px rgba(240,185,61,0.9); transform: scale(1.03); }
+  }
+  .slots-symbol.win-symbol {
+    animation: slotsSymbolWin 0.55s cubic-bezier(.36,1.8,.4,1) 2;
+    text-shadow: 0 0 16px rgba(0,230,118,0.85);
+    z-index: 3; position: relative;
+  }
+  .slots-symbol.win-symbol.big-win {
+    text-shadow: 0 0 22px rgba(240,185,61,0.9);
+    animation: slotsSymbolWinBig 0.5s cubic-bezier(.36,1.8,.4,1) 3;
+  }
+  @keyframes slotsSymbolWin {
+    0% { transform: scale(1) rotate(0deg); }
+    30% { transform: scale(1.4) rotate(-6deg); }
+    60% { transform: scale(0.92) rotate(4deg); }
+    100% { transform: scale(1.12) rotate(0deg); }
+  }
+  @keyframes slotsSymbolWinBig {
+    0% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.55) rotate(-8deg); }
+    55% { transform: scale(0.88) rotate(6deg); }
+    80% { transform: scale(1.25) rotate(-3deg); }
+    100% { transform: scale(1.15) rotate(0deg); }
+  }
+  @keyframes slotsSpin { 0% { top: 0; } 100% { top: -66px; } }
+  .slots-paytable {
+    display: flex; flex-wrap: wrap; gap: 4px 8px; background: var(--bg-raised);
+    border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; margin-bottom: 12px;
+  }
+  .slots-paytable .pt-row {
+    display: flex; align-items: center; gap: 4px; color: var(--ink-dim);
+    font-size: 0.62rem; font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    white-space: nowrap;
+  }
+  .slots-paytable .pt-row span:first-child { font-size: 0.72rem; font-family: 'Manrope', sans-serif; }
+  .slots-paytable .pt-row span:last-child { color: var(--gold); }
+
 </style>
 </head>
 <body>
@@ -467,6 +555,7 @@
 <div class="tabstrip" id="tabstrip">
   <button class="tab-btn active" data-tab="home">🏠 Home</button>
   <button class="tab-btn" data-tab="mines">💎 Mines</button>
+  <button class="tab-btn" data-tab="slots">🎰 Slots</button>
   <button class="tab-btn" data-tab="plinko">🔺 Plinko</button>
   <button class="tab-btn" data-tab="dice">🎲 Dice</button>
   <button class="tab-btn" data-tab="keno">#️⃣ Keno</button>
@@ -502,7 +591,8 @@
     </div>
     <div class="section-label">Games</div>
     <div class="games-grid">
-      <div class="game-shortcut" data-goto="blackjack"><span class="g-tag">New</span><div class="g-icon">♠️</div><div class="g-name">Blackjack</div></div>
+      <div class="game-shortcut" data-goto="slots"><span class="g-tag">New</span><div class="g-icon">🎰</div><div class="g-name">Slots</div></div>
+      <div class="game-shortcut" data-goto="blackjack"><div class="g-icon">♠️</div><div class="g-name">Blackjack</div></div>
       <div class="game-shortcut" data-goto="mines"><div class="g-icon">💎</div><div class="g-name">Mines</div></div>
       <div class="game-shortcut" data-goto="plinko"><div class="g-icon">🔺</div><div class="g-name">Plinko</div></div>
       <div class="game-shortcut" data-goto="dice"><div class="g-icon">🎲</div><div class="g-name">Dice</div></div>
@@ -537,6 +627,26 @@
       <div class="stat-box"><div class="stat-label">Payout</div><div class="stat-val" id="minesPayoutDisplay">0</div></div>
     </div>
     <button class="action-btn start" id="minesActionBtn">Start</button>
+  </div>
+
+  <!-- ===== SLOTS ===== -->
+  <div class="panel" id="panel-slots">
+    <div class="slots-machine" id="slotsMachine">
+      <div class="slots-reels" id="slotsReels"></div>
+    </div>
+    <div class="slots-paytable" id="slotsPaytable"></div>
+    <div class="bet-row">
+      <div style="flex:1;">
+        <div class="bet-label">Bet amount</div>
+        <input type="number" class="bet-input" id="slotsBetInput" value="10" min="1">
+      </div>
+      <div class="bet-quick">
+        <button data-mult="0.5" data-target="slots">½</button>
+        <button data-mult="2" data-target="slots">2×</button>
+        <button data-max="1" data-target="slots">Max</button>
+      </div>
+    </div>
+    <button class="action-btn start" id="slotsActionBtn">Spin</button>
   </div>
 
   <!-- ===== PLINKO ===== -->
@@ -1106,7 +1216,6 @@
     const drawn = new Set()
     while (drawn.size < KENO_DRAW) drawn.add(Math.floor(Math.random() * KENO_N) + 1)
 
-    // draw the balls one at a time so it feels like a real draw
     const drawnArr = [...drawn]
     for (let i = 0; i < drawnArr.length; i++) {
       const n = drawnArr[i]
@@ -1194,8 +1303,6 @@
   })
 
   async function dropPlinkoBall(targetBucket) {
-    // Walk the ball down row by row, biasing its left/right jitter so it
-    // actually ends up over the winning bucket — this is the visible "fall".
     const rows = plinkoPegsEl.querySelectorAll('.peg-row')
     const boardRect = plinkoPegsEl.getBoundingClientRect()
     const boardWidth = boardRect.width || 300
@@ -1211,7 +1318,6 @@
     for (let step = 0; step < rows.length; step++) {
       const row = rows[step]
       const progress = (step + 1) / rows.length
-      // ease left position toward the final bucket while still wobbling
       const wobble = (Math.random() - 0.5) * (12 * (1 - progress))
       leftPct = 50 + (finalLeftPct - 50) * progress + wobble
       leftPct = Math.max(4, Math.min(96, leftPct))
@@ -1219,7 +1325,6 @@
       plinkoBallEl.style.top = rowTop + 'px'
       plinkoBallEl.style.left = leftPct + '%'
 
-      // light up the peg nearest this horizontal position for a tactile feel
       const pegs = row.querySelectorAll('.peg')
       if (pegs.length) {
         const pegIndex = Math.min(pegs.length - 1, Math.round((leftPct / 100) * (pegs.length - 1)))
@@ -1230,7 +1335,6 @@
       await new Promise(r => setTimeout(r, 130))
     }
 
-    // final settle into the bucket
     const bucketRow = plinkoBucketsEl
     plinkoBallEl.style.top = (bucketRow.offsetTop + 6) + 'px'
     plinkoBallEl.style.left = finalLeftPct + '%'
@@ -1274,6 +1378,169 @@
   })
   buildPlinkoBoard()
 
+  // ================= SLOTS =================
+  // Weighted symbol set. Weight controls how often a symbol appears on the
+  // virtual reel strip (bigger weight = more common = smaller payout).
+  const SLOTS_SYMBOLS = [
+    { icon: '🍒', weight: 32, pay3: 3,   pay2: 1   },
+    { icon: '🍋', weight: 26, pay3: 5,   pay2: 0   },
+    { icon: '🔔', weight: 18, pay3: 10,  pay2: 0   },
+    { icon: '⭐', weight: 12, pay3: 20,  pay2: 0   },
+    { icon: '💎', weight: 8,  pay3: 50,  pay2: 0   },
+    { icon: '7️⃣', weight: 4,  pay3: 150, pay2: 0   },
+  ]
+  const SLOTS_ROW_H = 66 // px, must match .slots-symbol height
+  const SLOTS_VISIBLE_ROWS = 3 // reel window shows 3 stacked symbols
+  const SLOTS_REEL_LEN = 24 // virtual stops per reel strip (for spin animation)
+  const slotsReelsEl = document.getElementById('slotsReels')
+  const slotsBetInput = document.getElementById('slotsBetInput')
+  const slotsActionBtn = document.getElementById('slotsActionBtn')
+  const slotsPaytableEl = document.getElementById('slotsPaytable')
+  let slotsBusy = false
+
+  const slotsMachineEl = document.getElementById('slotsMachine')
+  const SLOTS_BIG_WIN_MULT = 15 // multiplier threshold (post house-edge) for the gold "big win" treatment
+
+  function slotsBuildPaytable() {
+    slotsPaytableEl.innerHTML = SLOTS_SYMBOLS.slice().reverse().map(s =>
+      `<div class="pt-row"><span>${s.icon}${s.icon}${s.icon}</span><span>${s.pay3}×</span></div>`
+    ).join('')
+  }
+
+  function slotsWeightedPick() {
+    const total = SLOTS_SYMBOLS.reduce((a, s) => a + s.weight, 0)
+    let r = Math.random() * total
+    for (const s of SLOTS_SYMBOLS) { if (r < s.weight) return s; r -= s.weight }
+    return SLOTS_SYMBOLS[0]
+  }
+
+  function slotsBuildReels() {
+    slotsReelsEl.innerHTML = ''
+    for (let i = 0; i < 3; i++) {
+      const reel = document.createElement('div')
+      reel.className = 'slots-reel'; reel.dataset.reel = i
+      const strip = document.createElement('div')
+      strip.className = 'slots-reel-strip'
+      // fill the strip with random symbols; the final resting middle symbol is set on spin
+      for (let j = 0; j < SLOTS_REEL_LEN; j++) {
+        const sym = document.createElement('div')
+        sym.className = 'slots-symbol'
+        sym.textContent = slotsWeightedPick().icon
+        strip.appendChild(sym)
+      }
+      reel.appendChild(strip)
+      slotsReelsEl.appendChild(reel)
+    }
+  }
+
+  // Lands the reel so resultSymbol sits in the visible MIDDLE row (the payline).
+  // Returns the DOM element for that middle symbol so the caller can animate a win.
+  async function slotsSpinReel(reelEl, resultSymbol, delay) {
+    const strip = reelEl.querySelector('.slots-reel-strip')
+    reelEl.classList.remove('win-glow', 'big-win')
+    reelEl.classList.add('spinning')
+    await new Promise(r => setTimeout(r, delay))
+    reelEl.classList.remove('spinning')
+
+    const syms = strip.querySelectorAll('.slots-symbol')
+    const n = syms.length
+    // last 3 symbols become the visible window: [top, middle=result, bottom]
+    syms[n - 3].textContent = slotsWeightedPick().icon
+    syms[n - 2].textContent = resultSymbol.icon
+    syms[n - 1].textContent = slotsWeightedPick().icon
+
+    // top's transition (bouncy overshoot, defined in CSS) drives the landing feel
+    strip.style.top = -((n - SLOTS_VISIBLE_ROWS) * SLOTS_ROW_H) + 'px'
+    hapticTap()
+    await new Promise(r => setTimeout(r, 340))
+
+    // a quick squash on the reel itself for a mechanical "thunk" on landing
+    reelEl.classList.add('settling')
+    setTimeout(() => reelEl.classList.remove('settling'), 280)
+
+    // snap strip back to top instantly, keeping the same 3 landed symbols as
+    // the first 3 rows, so the next spin starts clean without a visible jump
+    strip.style.transition = 'none'
+    const freshSyms = strip.querySelectorAll('.slots-symbol')
+    freshSyms.forEach((s, idx) => {
+      if (idx === 0) s.textContent = syms[n - 3].textContent
+      else if (idx === 1) s.textContent = resultSymbol.icon
+      else if (idx === 2) s.textContent = syms[n - 1].textContent
+      else s.textContent = slotsWeightedPick().icon
+    })
+    strip.style.top = '0px'
+    void strip.offsetWidth // force reflow so the "none" transition actually applies before we restore it
+    strip.style.transition = ''
+
+    return freshSyms[1] // the payline (middle-row) symbol element
+  }
+
+  slotsActionBtn.addEventListener('click', async () => {
+    if (slotsBusy) return
+    const bet = parseFloat(slotsBetInput.value) || 0
+    if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
+    if (bet > balance) { showToast('Not enough coins', 'lose'); return }
+    slotsBusy = true
+    slotsActionBtn.disabled = true
+    balance -= bet; renderBalance(); saveBalance()
+
+    const results = [slotsWeightedPick(), slotsWeightedPick(), slotsWeightedPick()]
+    const reelEls = slotsReelsEl.querySelectorAll('.slots-reel')
+    const midEls = await Promise.all([
+      slotsSpinReel(reelEls[0], results[0], 220),
+      slotsSpinReel(reelEls[1], results[1], 340),
+      slotsSpinReel(reelEls[2], results[2], 460),
+    ])
+
+    const [a, b, c] = results
+    let mult = 0
+    let winReelIdxs = []
+    if (a.icon === b.icon && b.icon === c.icon) {
+      mult = a.pay3 * HOUSE_EDGE
+      winReelIdxs = [0, 1, 2]
+    } else if (a.icon === b.icon || b.icon === c.icon || a.icon === c.icon) {
+      // any pair (adjacent or not) pays the smaller 2-of-a-kind rate of the matched symbol
+      const matched = a.icon === b.icon ? a : (b.icon === c.icon ? b : a)
+      if (matched.pay2 > 0) {
+        mult = matched.pay2 * HOUSE_EDGE
+        if (a.icon === b.icon) winReelIdxs = [0, 1]
+        else if (b.icon === c.icon) winReelIdxs = [1, 2]
+        else winReelIdxs = [0, 2]
+      }
+    }
+
+    const payout = Math.floor(bet * mult)
+    const isBigWin = mult >= SLOTS_BIG_WIN_MULT
+
+    if (payout > 0) {
+      balance += payout
+      showToast(`${a.icon}${b.icon}${c.icon} — +${payout} coins`, 'win', mult >= 5)
+      celebrateWin(mult)
+      winReelIdxs.forEach(i => {
+        reelEls[i].classList.add('win-glow')
+        midEls[i].classList.add('win-symbol')
+        if (isBigWin) { reelEls[i].classList.add('big-win'); midEls[i].classList.add('big-win') }
+      })
+      if (isBigWin) {
+        slotsMachineEl.classList.remove('jackpot-flash'); void slotsMachineEl.offsetWidth
+        slotsMachineEl.classList.add('jackpot-flash')
+      }
+    } else {
+      showToast(`${a.icon}${b.icon}${c.icon} — lost ${bet} coins`, 'lose')
+      reactLoss()
+    }
+    renderBalance(); await saveBalance()
+    setTimeout(() => {
+      reelEls.forEach(r => r.classList.remove('win-glow', 'big-win'))
+      midEls.forEach(el => el && el.classList.remove('win-symbol', 'big-win'))
+      slotsMachineEl.classList.remove('jackpot-flash')
+    }, 1500)
+    slotsActionBtn.disabled = false
+    slotsBusy = false
+  })
+
+  slotsBuildPaytable()
+  slotsBuildReels()
   // ================= BLACKJACK =================
   const sleep = ms => new Promise(r => setTimeout(r, ms))
   const BJ_SUITS = [{s:'♠',red:false},{s:'♥',red:true},{s:'♦',red:true},{s:'♣',red:false}]
@@ -1325,8 +1592,6 @@
         </div>
       </div>`
     container.appendChild(el)
-    // wait for the deal-in animation to actually finish before flipping —
-    // flipping while it's still landing was what caused the visible flicker
     if (!faceDown) el.addEventListener('animationend', () => el.classList.add('flipped'), { once: true })
     return el
   }
@@ -1379,19 +1644,19 @@
     await bjDealCard(bjPlayerHand, bjPlayerCardsEl, false)
     await bjDealCard(bjDealerHand, bjDealerCardsEl, false)
     await bjDealCard(bjPlayerHand, bjPlayerCardsEl, false)
-    await bjDealCard(bjDealerHand, bjDealerCardsEl, true) // hidden hole card
+    await bjDealCard(bjDealerHand, bjDealerCardsEl, true)
     bjUpdateScores(false)
 
     if (bjIsBlackjack(bjPlayerHand)) {
       await sleep(300)
-      await bjResolve(true) // bjResolve clears bjBusy once the round fully settles
+      await bjResolve(true)
       return
     }
 
     bjHitBtn.disabled = false
     bjStandBtn.disabled = false
     bjDoubleBtn.disabled = balance < bjBet
-    bjBusy = false // now waiting on the player's decision
+    bjBusy = false
   }
 
   async function bjHit() {
@@ -1405,7 +1670,7 @@
     if (score === 21) { await bjStandFlow(); return }
     bjHitBtn.disabled = false
     bjStandBtn.disabled = false
-    bjBusy = false // double is never re-enabled after the first hit — only valid on 2 cards
+    bjBusy = false
   }
 
   async function bjDouble() {
@@ -1420,15 +1685,12 @@
     else await bjStandFlow()
   }
 
-  // Button handler — guarded, only fires when it's the player's turn to act.
   function bjStand() {
     if (!bjActive || bjBusy) return
     bjBusy = true
     bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjDoubleBtn.disabled = true
     bjStandFlow()
   }
-  // Internal flow, reused by Hit (auto-stand at 21) and Double — caller already
-  // holds the busy lock, so this never re-checks it.
   async function bjStandFlow() {
     await bjResolve(false)
   }
@@ -1436,7 +1698,6 @@
   async function bjResolve(playerBlackjack, playerBusted) {
     bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjDoubleBtn.disabled = true
 
-    // reveal hidden dealer card
     const holeCardEl = bjDealerCardsEl.children[1]
     if (holeCardEl && !holeCardEl.classList.contains('flipped')) {
       holeCardEl.classList.add('flipped')
@@ -1448,8 +1709,6 @@
     const playerScore = bjScore(bjPlayerHand)
 
     if (!playerBusted && !playerBlackjack) {
-      // Dealer draws to 17+. If the player busted, or has a natural
-      // blackjack, the dealer's hand is already final either way.
       while (dealerScore < 17) {
         await bjDealCard(bjDealerHand, bjDealerCardsEl, false)
         dealerScore = bjScore(bjDealerHand)
