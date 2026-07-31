@@ -1295,6 +1295,7 @@
   }
   document.querySelectorAll('.risk-row button').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (plinkoBusy) return
       hapticTap()
       document.querySelectorAll('.risk-row button').forEach(b => b.classList.remove('active'))
       btn.classList.add('active'); plinkoRisk = btn.dataset.risk
@@ -1342,39 +1343,60 @@
   }
 
   plinkoActionBtn.addEventListener('click', async () => {
+    // Guard #1: bail immediately if a drop is already in progress. This check
+    // (and the flag flip right below) happens synchronously before any
+    // `await`, so rapid/spam taps on the button can't slip through and spawn
+    // a second ball while the first is still animating.
     if (plinkoBusy) return
     const bet = parseFloat(plinkoBetInput.value) || 0
     if (bet <= 0) { showToast('Enter a valid bet', 'lose'); return }
     if (bet > balance) { showToast('Not enough coins', 'lose'); return }
+
     plinkoBusy = true
     if (plinkoCleanupTimer) { clearTimeout(plinkoCleanupTimer); plinkoCleanupTimer = null }
-    balance -= bet; renderBalance()
+    // Guard #2: disable the button + bet input right away (not after the
+    // animation), and belt-and-suspenders it with pointer-events so a fast
+    // finger can't fire a second click before the disabled state paints.
     plinkoActionBtn.disabled = true
-    let bucket = 0
-    for (let i = 0; i < PLINKO_ROWS; i++) if (Math.random() < 0.5) bucket++
-    const mults = plinkoMultipliers()
-    const mult = mults[bucket]
+    plinkoActionBtn.style.pointerEvents = 'none'
+    plinkoBetInput.disabled = true
 
-    await dropPlinkoBall(bucket)
+    // Guard #3: wrap the whole round in try/finally so that even if
+    // something throws mid-animation, we always release the busy flag and
+    // re-enable the button instead of soft-locking Plinko forever.
+    try {
+      balance -= bet; renderBalance()
+      let bucket = 0
+      for (let i = 0; i < PLINKO_ROWS; i++) if (Math.random() < 0.5) bucket++
+      const mults = plinkoMultipliers()
+      const mult = mults[bucket]
 
-    document.querySelectorAll('.bucket').forEach((b, i) => b.classList.toggle('hit', i === bucket))
-    const payout = Math.floor(bet * mult)
-    balance += payout
-    if (mult >= 1) {
-      showToast(`${mult.toFixed(2)}× — +${payout} coins`, 'win', mult >= 3)
-      celebrateWin(mult)
-    } else {
-      showToast(`${mult.toFixed(2)}× — kept ${payout} coins`, 'lose')
-      reactLoss()
-    }
-    renderBalance(); await saveBalance()
-    plinkoCleanupTimer = setTimeout(() => {
+      await dropPlinkoBall(bucket)
+
+      document.querySelectorAll('.bucket').forEach((b, i) => b.classList.toggle('hit', i === bucket))
+      const payout = Math.floor(bet * mult)
+      balance += payout
+      if (mult >= 1) {
+        showToast(`${mult.toFixed(2)}× — +${payout} coins`, 'win', mult >= 3)
+        celebrateWin(mult)
+      } else {
+        showToast(`${mult.toFixed(2)}× — kept ${payout} coins`, 'lose')
+        reactLoss()
+      }
+      renderBalance(); await saveBalance()
+
+      await new Promise(resolve => {
+        plinkoCleanupTimer = setTimeout(resolve, 1200)
+      })
       plinkoBallEl.style.display = 'none'
       document.querySelectorAll('.bucket').forEach(b => b.classList.remove('hit'))
-      plinkoActionBtn.disabled = false
-      plinkoBusy = false
+    } finally {
       plinkoCleanupTimer = null
-    }, 1200)
+      plinkoActionBtn.disabled = false
+      plinkoActionBtn.style.pointerEvents = ''
+      plinkoBetInput.disabled = false
+      plinkoBusy = false
+    }
   })
   buildPlinkoBoard()
 
